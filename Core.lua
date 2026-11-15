@@ -34,8 +34,10 @@ end
 --   minimapShow, minimapAngle, language
 --   migrated               the first run's take-over done (Migrate.lua)
 -- A new ForeverThemesDB starts with the author's choices: every window skin
--- and both text bridges on, Pitwall in red and Comic in black. A stored one
--- is never touched; the central theme itself is seeded in Hub.lua.
+-- and both text bridges on, Pitwall in red and Comic in black. They stay only
+-- when no Forever addon is there at the first run; else Migrate.lua puts in
+-- exactly what those addons had. A stored one is never touched; the central
+-- theme itself is seeded in Hub.lua.
 local SKINS = { "skinCharacter", "skinSpellbook", "skinTalents", "skinProfessions", "skinLegacy",
     "skinCommunities", "skinCollections" }
 ns.SKINS = SKINS

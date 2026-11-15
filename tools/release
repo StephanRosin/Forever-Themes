@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Upload the packaged addon to CurseForge.
-#   tools/release <release|beta|alpha> "<changelog text>"
+#   flock /tmp/claude-1000/forever-tests.lock tools/release <release|beta|alpha> "<changelog text>"
+# It runs tests/run, which must never overlap another Forever test run: the
+# caller holds the lock (taking it here again would wait on the caller's).
 # Version comes from the TOC (bump it first). The API token is read from
 # $CURSEFORGE_TOKEN or ~/.config/curseforge-token; it is never stored here.
 # The project ID is read from $CURSEFORGE_PROJECT_ID or from the

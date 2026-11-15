@@ -2,8 +2,9 @@
 Options.lua -- the pages of the options window (OptionsPanel.lua):
 Theme (the central theme and colour, minimap button), Addons (follow or own
 theme per registered Forever addon, with its theme now), Blizzard's windows
-(one switch per skin) and Blizzard's texts (the font bridges). Built at
-login: every addon has registered by then.
+(one switch per skin) and Blizzard's texts (the font bridges). Built when
+the window is made, not at login: InfoPanel registers Bartender in its own
+PLAYER_LOGIN, after ours.
 -----------------------------------------------------------------------------]]
 
 local ADDON, ns = ...
@@ -97,6 +98,6 @@ function ns.OptionsSpec()
     return spec
 end
 
-ns.On("PLAYER_LOGIN", function() ns.BuildOptions(ns.OptionsSpec()) end)
+ns.BuildOptions(ns.OptionsSpec)
 -- The theme changed (here, the menu, the minimap button): the window shows it.
 ns.Settings.OnChange(function() ns.RefreshOptions() end)

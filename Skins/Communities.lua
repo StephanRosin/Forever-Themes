@@ -5,7 +5,7 @@ loads on demand) in the central theme. The menu entry and the key open it
 through ToggleGuildFrame -> ToggleCommunitiesFrame (Camelot uses
 Mainline/Game.lua); FriendsFrame has no guild tab here. Option
 "Theme Blizzard's guild & communities window" (options, Blizzard's windows),
-account-wide, off by default. Built like Skins/Character.lua.
+account-wide (default: Core.lua, Migrate.lua). Built like Skins/Character.lua.
 
 Themed:
   - Frame: NineSlice, portrait with crest (PortraitOverlay), rock tile,

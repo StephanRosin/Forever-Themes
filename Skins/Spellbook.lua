@@ -6,7 +6,7 @@ holds the spellbook (.SpellBookFrame) and talents (.TalentsFrame) and shows
 one of them depending on the micro button. This module takes the outer frame
 (also under the talents) and the spellbook's content; Skins/Talents.lua takes
 the talents' content. Option "Theme Blizzard's spellbook" (options,
-Blizzard's windows), account-wide, off by default. Model: Skins/Character.lua.
+Blizzard's windows), account-wide (default: Core.lua, Migrate.lua). Model: Skins/Character.lua.
 
 Themed:
   - Frame: NineSlice, portrait, rock ground and streaks hidden; under them

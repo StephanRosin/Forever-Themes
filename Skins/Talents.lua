@@ -1,7 +1,7 @@
 --[[---------------------------------------------------------------------------
 Skins/Talents.lua -- Blizzard's talent window in the central theme.
 Option "Theme Blizzard's talent window" (options, Blizzard's windows),
-account-wide, off by default. Built like Skins/Character.lua.
+account-wide (default: Core.lua, Migrate.lua). Built like Skins/Character.lua.
 
 Forever 1.60.1 (Camelot) has no talent window of its own: spellbook and
 talents share PlayerSpellsFrame (Blizzard_PlayerSpells, loads on demand;

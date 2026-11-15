@@ -6,7 +6,8 @@ local _, ns = ...
 -- (Themes.Font); outline and shadow stay Platynator's. Its shipped designs
 -- ("_deer", "_hare_simplified", ...) are not stored and stay as they are. The first change remembers each design's font
 -- (ForeverThemesDB.platynator.snapshot[profile][design]); Classic or
--- the switch off puts exactly that back and forgets it.
+-- the switch off puts exactly that back, in every profile it touched, and
+-- forgets it.
 --
 -- While this addon is loaded it owns this (LibForeverThemes.Hub()): the
 -- Unit Frames' and InfoPanel's bridges stand down, putting back the
@@ -18,7 +19,8 @@ local _, ns = ...
 --
 -- Platynator has no public way to redraw its designs (its callback
 -- registry is private, Platynator.API knows only text and import): the
--- font shows after a /reload, the chat says so. When Platynator loads,
+-- font shows after a /reload, the chat says so (our first change in a
+-- session not when Unit Frames' stand-down said it already). When Platynator loads,
 -- our theme fonts go to LibSharedMedia (where Platynator looks fonts up
 -- by name) and designs made since the last change get the font, before
 -- Platynator reads them.
@@ -28,11 +30,11 @@ ns.PlatynatorFonts = PlatynatorFonts
 -- Platynator's own font (its Core/Constants.lua DefaultFont).
 local PLATYNATOR_DEFAULT = "Roboto Condensed Bold"
 
--- The active profile's own designs and its name; nil when Platynator's
--- saved variables do not look as expected.
-local function designs()
+-- A profile's own designs (default: the active one) and its name; nil when
+-- Platynator's saved variables do not look as expected.
+local function designs(name)
     local config = _G.PLATYNATOR_CONFIG
-    local name = _G.PLATYNATOR_CURRENT_PROFILE or "DEFAULT"
+    name = name or _G.PLATYNATOR_CURRENT_PROFILE or "DEFAULT"
     local profile = type(config) == "table" and type(config.Profiles) == "table" and config.Profiles[name]
     if type(profile) ~= "table" or type(profile.designs) ~= "table" then return nil end
     return profile.designs, name
@@ -95,14 +97,25 @@ local function apply(store, font)
 end
 
 local function restore(store)
-    local list, profile = designs()
-    local snap = list and store.snapshot and store.snapshot[profile]
-    for name, asset in pairs(snap or {}) do
-        local f = fontOf(list[name])
-        if f then f.asset = asset end
+    for profile, snap in pairs(store.snapshot or {}) do
+        local list = designs(profile)
+        for name, asset in pairs(list and snap or {}) do
+            local f = fontOf(list[name])
+            if f then f.asset = asset end
+        end
     end
     store.snapshot = nil
 end
+
+-- Forever Unit Frames stands down at its PLAYER_LOGIN and prints the
+-- /reload line when it had themed Platynator (its store.font). Read before
+-- any PLAYER_LOGIN, while its saved variables are as stored.
+local othersSaidReload = false
+ns.On("ADDON_LOADED", function()
+    local fuf = _G.ForeverUnitFramesDB
+    local store = type(fuf) == "table" and fuf.platynator
+    if type(store) == "table" and store.font then othersSaidReload = true end
+end)
 
 function PlatynatorFonts.Enabled() return ns.AccountDB().platynatorFont == true end
 
@@ -122,7 +135,8 @@ function PlatynatorFonts.Refresh()
     db.platynator = store
     if font then apply(store, font) else restore(store) end
     store.font = font
-    ns.Print(ns.L.PLATYNATOR_RELOAD)
+    -- Their line covers our first change: one /reload shows both.
+    if othersSaidReload then othersSaidReload = false else ns.Print(ns.L.PLATYNATOR_RELOAD) end
 end
 
 -- Platynator loading: fonts to LibSharedMedia, new designs get the font.

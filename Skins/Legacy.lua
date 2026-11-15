@@ -4,7 +4,7 @@ Skins/Legacy.lua -- Blizzard's legacy window (LegacySystemFrame, Forever
 LegacyMicroButton or key TOGGLELEGACYSYSTEM) in the central theme. Three
 pages: reward track (RewardTrackPage), challenges (ChallengesPage), tree
 (TreePage). Option "Theme Blizzard's legacy window" (options, Blizzard's
-windows), account-wide, off by default. Same approach as
+windows), account-wide (default: Core.lua, Migrate.lua). Same approach as
 Skins/Character.lua.
 
 Themed:

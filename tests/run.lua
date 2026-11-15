@@ -93,7 +93,10 @@ check("nothing before the moment after login", Themes.IsSet(), false)
 runTimers()
 check("waits while an addon refuses (Unit Frames WAITING)", Themes.IsSet(), false)
 check("no switch while waiting", #calls, 0)
+check("the waiting addon is named, not \"?\"", #M.timers, 1)
 fuf.refuse = nil
+runTimers()
+check("seeded: the change told a moment later", #M.timers, 1)
 runTimers()
 check("central theme: the tie goes to Unit Frames'", ForeverThemesDB.theme, "PITWALL")
 check("central colour: the most common on it", Themes.Color(), "ORANGE")
@@ -194,25 +197,9 @@ do
     check("a stored DB is not filled up", ns.AccountDB().skinTalents, nil)
     check("its colours stay", Themes.Color("PITWALL"), "ORANGE")
     check("its theme stays", Themes.Current(), "WOOD")
-    -- Every addon on Classic: they stay Classic (installing the hub changes
-    -- nothing a player sees) and follow it.
-    local c1, c2 = addon("ClassicOne", "CLASSIC"), addon("ClassicTwo", "CLASSIC")
-    _G.ForeverThemes = { ClassicOne = c1.entry, ClassicTwo = c2.entry }
-    ForeverThemesDB = ns.NewAccountDB()
-    Hub.Sync()
-    check("all Classic: stays Classic", Themes.Current(), "CLASSIC")
-    check("all Classic: they follow", Hub.Follows("ClassicOne"), true)
-    check("all Classic: nothing switched", c1.theme .. " " .. c2.theme, "CLASSIC CLASSIC")
-    -- Classic next to a theme: the theme is taken over, Classic kept.
-    c1.theme, c2.theme = "CLASSIC", "WOOD"
-    ForeverThemesDB = ns.NewAccountDB()
-    Hub.Sync()
-    check("Classic and Wood: Wood", Themes.Current(), "WOOD")
-    check("the Classic one keeps its own", Hub.Follows("ClassicOne"), false)
-    check("and stays Classic", c1.theme, "CLASSIC")
     _G.ForeverThemes = saved
 end
-ForeverThemesDB = { theme = "WOOD", follow = { ForeverQuestLog = false } }
+ForeverThemesDB = { theme = "WOOD", follow = { ForeverQuestLog = false }, migrated = true }
 
 section("Blizzard texts")
 local bar = CreateFrame("StatusBar", "PlayerCastingBarFrame")
@@ -261,6 +248,16 @@ check("on: chat asks for /reload", M.chat[#M.chat]:find("/reload", 1, true) ~= n
 P.SetEnabled(false)
 check("off: own font back", designs.mine.font.asset, "Roboto Condensed Bold")
 check("off: a themed copy gets Platynator's own", designs.copy.font.asset, "Roboto Condensed Bold")
+PLATYNATOR_CONFIG.Profiles.Raid = { designs = { raid = { font = { asset = "Friz Quadrata TT" } } } }
+P.SetEnabled(true)
+PLATYNATOR_CURRENT_PROFILE = "Raid"
+Themes.Switch("WOOD")
+check("another profile themed after a switch", PLATYNATOR_CONFIG.Profiles.Raid.designs.raid.font.asset, "Cinzel")
+P.SetEnabled(false)
+check("off: the active profile back", PLATYNATOR_CONFIG.Profiles.Raid.designs.raid.font.asset, "Friz Quadrata TT")
+check("off: the other profile back too", designs.mine.font.asset, "Roboto Condensed Bold")
+PLATYNATOR_CURRENT_PROFILE = nil
+Themes.Switch("PITWALL")
 
 section("Theme font: Forever Unit Frames' choice")
 -- Its Core/Themes.lua: Themes.Font() is its spec's font, the library's
@@ -318,36 +315,181 @@ check("login: the original remembered", ForeverThemesDB.platynator.snapshot.DEFA
 P.SetEnabled(false)
 PLATYNATOR_CONFIG = nil
 
-section("First run: switches taken over once")
+section("First run from a fresh ForeverThemesDB, as the game makes it")
+-- Login as the client runs it: no ForeverThemesDB, ADDON_LOADED,
+-- PLAYER_LOGIN (the take-over), a moment later the hub's seed and then its
+-- notice. registry: folder -> fake addon.
 function UnitFullName() return "Testchar", "Testrealm" end
-local keptDB = ForeverThemesDB
-ForeverThemesDB = {}
-ForeverUnitFramesDB = { active = { ["Testchar-Testrealm"] = "Healer" }, profiles = {
-    Default = { general = {} },
-    Healer = { general = { themeBlizzardFonts = true, themePlatynatorFont = true } } } }
-InfoPanelDB = { skinTalents = true, skinCollections = true, skinCharacter = false, blizzardFonts = {} }
+local keptDB, keptRegistry = ForeverThemesDB, _G.ForeverThemes
+local FRIZ = "Fonts\\FRIZQT__.TTF"
+local PITWALL_FONT = "Titillium Web SemiBold"
+local function login(registry)
+    _G.ForeverThemes = {}
+    for folder, a in pairs(registry) do _G.ForeverThemes[folder] = a.entry end
+    PLATYNATOR_CONFIG = { Profiles = { DEFAULT = { designs = { Mine = { font = { asset = "Roboto Condensed Bold" } } } } } }
+    ForeverThemesDB = nil
+    fire("ADDON_LOADED", "ForeverThemes")
+    fire("PLAYER_LOGIN")
+    runTimers()
+    runTimers()
+end
+local function skinsOn()
+    local n = 0
+    for _, key in ipairs(ns.SKINS) do if ForeverThemesDB[key] then n = n + 1 end end
+    return n
+end
+local function design() return PLATYNATOR_CONFIG.Profiles.DEFAULT.designs.Mine.font.asset end
+local function reloadLines()
+    local n = 0
+    for _, line in ipairs(M.chat) do if line:find(ns.L.PLATYNATOR_RELOAD, 1, true) then n = n + 1 end end
+    return n
+end
+local function unitFrames(general)
+    ForeverUnitFramesDB = { active = { ["Testchar-Testrealm"] = "Healer" },
+        profiles = { Default = { general = {} }, Healer = { general = general } } }
+end
+
+unitFrames({ themeBlizzardFonts = false, themePlatynatorFont = false })
+InfoPanelDB = nil
+login({ ForeverUnitFrames = addon("ForeverUnitFrames", "PITWALL", "ORANGE") })
+check("Unit Frames on Pitwall: central Pitwall", Themes.Current(), "PITWALL")
+check("its colour, not the author's red", Themes.Color(), "ORANGE")
+check("its Blizzard texts off: stay off", ForeverThemesDB.blizzardTexts, nil)
+check("its Platynator off: stays off", ForeverThemesDB.platynatorFont, nil)
+check("no skin switched on", skinsOn(), 0)
+check("cast bar untouched", (bar.Text:GetFont()), FRIZ)
+check("Platynator design untouched", design(), "Roboto Condensed Bold")
+check("the author's Comic black gone", ForeverThemesDB.colors.COMIC, nil)
+
+section("Addons first seen after the seed")
+local same = addon("SamePitwall", "PITWALL", "ORANGE")
+local other = addon("OtherWood", "WOOD", "OAK")
+_G.ForeverThemes.SamePitwall, _G.ForeverThemes.OtherWood = same.entry, other.entry
+calls = {}
+Hub.Sync()
+check("wearing the central theme and colour: follows", Hub.Follows("SamePitwall"), true)
+check("another theme: keeps its own", Hub.Follows("OtherWood"), false)
+check("neither switched", table.concat(calls, " "), "")
+check("both remembered", ForeverThemesDB.known.OtherWood and ForeverThemesDB.known.SamePitwall, true)
+local waits = addon("WaitsLater", "WOOD", "OAK")
+waits.refuse = "WAITING"
+_G.ForeverThemes.WaitsLater = waits.entry
+Hub.Sync()
+check("waiting: not decided yet", ForeverThemesDB.known.WaitsLater, nil)
+check("waiting: asked again", #M.timers, 1)
+waits.refuse = nil
+runTimers()
+check("then decided: own", Hub.Follows("WaitsLater"), false)
+calls = {}
+Themes.Switch("FROST")
+table.sort(calls)
+check("a change moves only the followers", table.concat(calls, " "), "ForeverUnitFrames>FROST SamePitwall>FROST")
+
+section("Hub().Sync for the other addons")
+calls = {}
+same.theme = "WOOD" -- its profile changed
+Lib.Hub().Sync()
+Lib.Hub().Sync()
+check("asked twice: one Sync a moment later", #M.timers, 1)
+runTimers()
+check("synced: back on the central theme", same.theme, "FROST")
+same.theme = "WOOD"
+M.combat = true
+Lib.Hub().Sync()
+check("in combat: no timer", #M.timers, 0)
+M.combat = false
+fire("PLAYER_REGEN_ENABLED")
+check("after combat: synced", same.theme, "FROST")
+
+unitFrames({ themeBlizzardFonts = true, themePlatynatorFont = true })
+login({ ForeverUnitFrames = addon("ForeverUnitFrames", "PITWALL", "ORANGE") })
+check("its Blizzard texts on: on", ForeverThemesDB.blizzardTexts, true)
+check("its Platynator on: on", ForeverThemesDB.platynatorFont, true)
+check("still no skin", skinsOn(), 0)
+check("seeded: cast bar in the theme font at once", (bar.Text:GetFont()), ns.Media.FontPath(PITWALL_FONT))
+check("seeded: Platynator design at once", design(), PITWALL_FONT)
+
+ForeverUnitFramesDB = nil
+InfoPanelDB = { skinTalents = true, blizzardFonts = { theme = "WOOD" }, platynator = { theme = "WOOD" } }
+local waiting = addon("ForeverUnitFrames", "PITWALL", "ORANGE")
+waiting.refuse = "WAITING"
+local chatBefore = #M.chat
+login({ ForeverUnitFrames = waiting })
+check("WAITING: not seeded yet", Themes.IsSet(), false)
+check("InfoPanel's switches taken over", tostring(ForeverThemesDB.blizzardTexts) .. " "
+    .. tostring(ForeverThemesDB.platynatorFont) .. " " .. skinsOn(), "true true 1")
+check("WAITING: cast bar not yet", (bar.Text:GetFont()), FRIZ)
+waiting.refuse = nil
+runTimers()
+runTimers()
+check("on retry: seeded", Themes.Current(), "PITWALL")
+check("on retry: cast bar in the theme font", (bar.Text:GetFont()), ns.Media.FontPath(PITWALL_FONT))
+check("on retry: Platynator design", design(), PITWALL_FONT)
+local refused = false
+for i = chatBefore + 1, #M.chat do if M.chat[i]:find("?", 1, true) then refused = true end end
+check("no \"?\" in the chat", refused, false)
+
+section("A refusal for good does not hold the seed")
+local noDesigns = addon("Platynator", "WOOD", nil, { noColors = true })
+noDesigns.entry.Switch = function() return nil, "NO_DESIGNS" end
+login({ ForeverUnitFrames = addon("ForeverUnitFrames", "TECH", "AMBER"), Platynator = noDesigns })
+check("seeded without it", Themes.Current(), "TECH")
+check("no retry", #M.timers, 0)
+check("left out of the vote: not remembered", ForeverThemesDB.known.Platynator, nil)
+
+section("Platynator: one /reload line")
+unitFrames({ themePlatynatorFont = true })
+ForeverUnitFramesDB.platynator = { font = PITWALL_FONT } -- it stands down at its login and says so
+InfoPanelDB = nil
+local before = reloadLines()
+login({ ForeverUnitFrames = addon("ForeverUnitFrames", "PITWALL", "ORANGE") })
+check("themed", design(), PITWALL_FONT)
+check("Unit Frames said it: we stay quiet", reloadLines(), before)
+Themes.Switch("WOOD")
+check("a later change says it", reloadLines(), before + 1)
+ForeverUnitFramesDB = nil
+
+section("No Forever addon: the author's choices")
+login({})
+check("Pitwall", Themes.Current(), "PITWALL")
+check("in red", Themes.Color(), "RED")
+check("Comic in black once picked", Themes.Color("COMIC"), "BLACK")
+check("every window skin", skinsOn(), 7)
+check("Blizzard texts and Platynator", tostring(ForeverThemesDB.blizzardTexts) .. " "
+    .. tostring(ForeverThemesDB.platynatorFont), "true true")
+check("cast bar in Pitwall's font", (bar.Text:GetFont()), ns.Media.FontPath(PITWALL_FONT))
+
+section("Every Forever addon on Classic")
+local c1, c2 = addon("ClassicOne", "CLASSIC"), addon("ClassicTwo", "CLASSIC")
+login({ ClassicOne = c1, ClassicTwo = c2 })
+check("stays Classic", Themes.Current(), "CLASSIC")
+check("they follow", Hub.Follows("ClassicOne"), true)
+check("nothing switched", c1.theme .. " " .. c2.theme, "CLASSIC CLASSIC")
+check("nothing active", tostring(ForeverThemesDB.blizzardTexts) .. " " .. tostring(ForeverThemesDB.platynatorFont)
+    .. " " .. skinsOn(), "nil nil 0")
+check("cast bar untouched", (bar.Text:GetFont()), FRIZ)
+check("Platynator untouched", design(), "Roboto Condensed Bold")
+c1.theme, c2.theme = "CLASSIC", "WOOD"
+login({ ClassicOne = c1, ClassicTwo = c2 })
+check("Classic and Wood: Wood", Themes.Current(), "WOOD")
+check("the Classic one keeps its own", Hub.Follows("ClassicOne"), false)
+check("and stays Classic", c1.theme, "CLASSIC")
+
+section("Take-over: only once")
+ForeverThemesDB.blizzardTexts = true
 ns.Migrate.Run()
-check("Unit Frames' Blizzard texts", ForeverThemesDB.blizzardTexts, true)
-check("Unit Frames' Platynator", ForeverThemesDB.platynatorFont, true)
-check("InfoPanel's skin: talents", ForeverThemesDB.skinTalents, true)
-check("InfoPanel's skin: collections", ForeverThemesDB.skinCollections, true)
-check("a skin it had off stays off", ForeverThemesDB.skinCharacter, nil)
-check("marked done", ForeverThemesDB.migrated, true)
-ForeverThemesDB.blizzardTexts = nil
-ns.Migrate.Run()
-check("only once: switched off stays off", ForeverThemesDB.blizzardTexts, nil)
-ForeverThemesDB = {}
-ForeverUnitFramesDB.active = {}
-InfoPanelDB = { platynator = { theme = "WOOD" }, blizzardFonts = { theme = "CLASSIC" } }
-ns.Migrate.Run()
+check("a later login changes no switch", ForeverThemesDB.blizzardTexts, true)
+ForeverUnitFramesDB = { active = {}, profiles = { Default = { general = {} },
+    Healer = { general = { themeBlizzardFonts = true } } } }
+login({ ForeverUnitFrames = addon("ForeverUnitFrames", "PITWALL", "ORANGE") })
 check("another character on Default: no Blizzard texts", ForeverThemesDB.blizzardTexts, nil)
-check("InfoPanel's Platynator theme", ForeverThemesDB.platynatorFont, true)
-ForeverThemesDB = { theme = "WOOD" }
-ForeverUnitFramesDB, InfoPanelDB = nil, nil
-ns.Migrate.Run()
-check("neither addon: nothing on", ForeverThemesDB.blizzardTexts, nil)
-ForeverThemesDB = keptDB
+ForeverUnitFramesDB, InfoPanelDB, PLATYNATOR_CONFIG = nil, nil, nil
+ForeverThemesDB, _G.ForeverThemes = keptDB, keptRegistry
+Fonts.SetEnabled(false)
 Themes.Switch("PITWALL")
+fire("PLAYER_LOGIN")
+runTimers()
+runTimers()
 
 section("Options, slash, minimap button")
 local spec = ns.OptionsSpec()
@@ -370,6 +512,16 @@ for _, row in ipairs(spec) do
         check("Quest Log row: follow switches it", ql.theme, "PITWALL")
     end
 end
+
+-- The list is made when the window is: an addon registered after our
+-- login (InfoPanel's Bartender) is in it.
+_G.ForeverThemes.Bartender = addon("Bartender", "PITWALL", nil, { noColors = true, title = "Bartender" }).entry
+ns.Window.Open(2)
+local listed = false
+for _, text in pairs(M.labelText) do if text == "Bartender" then listed = true end end
+check("Addons page: a late addon listed", listed, true)
+ns.Window.Toggle()
+_G.ForeverThemes.Bartender = nil
 
 section("Theme menu for other addons (Data Bar's Theme element)")
 -- Blizzard_Menu recorded: the owner and what the menu holds.

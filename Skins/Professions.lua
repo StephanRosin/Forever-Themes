@@ -2,7 +2,7 @@
 Skins/Professions.lua -- Blizzard's professions window (ProfessionsFrame, Forever
 1.60.1: Blizzard_Professions/Camelot/Blizzard_ProfessionsFrame.xml, loads on
 demand) in the central theme. Option "Theme Blizzard's professions window"
-(options, Blizzard's windows), account-wide, off by default. Built like
+(options, Blizzard's windows), account-wide (default: Core.lua, Migrate.lua). Built like
 Skins/Character.lua. Forever has neither TradeSkillFrame nor CraftFrame, and
 the profession book is no window of its own: it is the BookPage page of
 ProfessionsFrame (Blizzard_ProfessionsBook.xml does not load under Camelot).

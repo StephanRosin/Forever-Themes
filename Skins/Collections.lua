@@ -4,7 +4,7 @@ Blizzard_Collections, Forever 1.60.1: Shared/Blizzard_Collections.xml, tabs
 Camelot/Blizzard_CollectionsTabs.xml, content Mainline/ and
 Classic/Blizzard_PetCollection.xml) in the central theme. Option
 "Theme Blizzard's collections window" (options, Blizzard's windows),
-account-wide, off by default. Built like Skins/Character.lua (the rules are
+account-wide (default: Core.lua, Migrate.lua). Built like Skins/Character.lua (the rules are
 there).
 
 Themed:

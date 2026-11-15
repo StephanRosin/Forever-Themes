@@ -2,7 +2,7 @@
 Skins/Character.lua -- Blizzard's character window (CharacterFrame, Forever
 1.60.1: Blizzard_UIPanels_Game/Camelot/CharacterFrame.xml) in the central
 theme. Option "Theme Blizzard's character window" (options, under Blizzard's
-windows), account-wide, off by default. Depends only on Skins/Skin.lua,
+windows), account-wide (default: Core.lua, Migrate.lua). Depends only on Skins/Skin.lua,
 Themes and one line in Options.lua.
 
 Themed:

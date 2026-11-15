@@ -5,16 +5,18 @@ Options/Widgets.lua are the same): a title
 bar, the pages on the left with the language at the bottom, the chosen page
 on the right.
 
-Options.lua describes the pages as one list, each page starting with a
-{ type = "tab" } entry:
+Options.lua hands over a function that describes the pages as one list,
+each page starting with a { type = "tab" } entry; it is called whenever the
+window is made (first opening, new language), so the list shows what is
+registered then:
 
-    ns.BuildOptions({
+    ns.BuildOptions(function() return {
         { type = "tab", label = "TAB_THEME" },
         { type = "header", label = "HEADER_THEME" },
         { type = "select", label = "OPT_THEME", choices = ..., get = ..., set = ... },
         { type = "check", label = "OPT_MINIMAP", get = ..., set = ..., tooltip = "TIP_..." },
         ...
-    })
+    } end)
 
 Labels, hints and tooltips are keys into ns.L or functions (a function
 hint is read again on every refresh). A plain window of the addon's own, not
@@ -39,7 +41,8 @@ local PAGE_TOP, PAGE_BOTTOM, SECTION_GAP, INSET = 4, 16, 8, 16
 local BUTTON_H, BUTTON_W, BUTTON_GAP = 24, 140, 8
 local WINDOW_NAME = "ForeverThemesOptions"
 
-local spec            -- the pages, from Options.lua
+local build           -- makes the pages (Options.lua)
+local spec            -- the pages build made for this window
 local pageSpecs = {}  -- { label, rows } per page
 local frame, current
 local pages = {}
@@ -333,6 +336,8 @@ local function createTitleBar(parent)
 end
 
 local function createWindow()
+    spec = build()
+    splitPages()
     frame = CreateFrame("Frame", WINDOW_NAME, UIParent)
     frame:SetSize(WIDTH, HEIGHT)
     frame:SetPoint("CENTER")
@@ -375,16 +380,13 @@ end
 
 -- Public API ------------------------------------------------------------------------
 
--- Options.lua hands the pages over at login.
-function ns.BuildOptions(s)
-    spec = s
-    splitPages()
-end
+-- Options.lua hands over the function that makes the pages.
+function ns.BuildOptions(fn) build = fn end
 
 function Window.PageCount() return #pageSpecs end
 
 function Window.ShowPage(i)
-    if not spec then return end
+    if not build then return end
     if not frame then createWindow() end
     local page = pageFor(i)
     if not page then return end
@@ -412,7 +414,7 @@ end
 ns.RefreshOptions = Window.Refresh
 
 function Window.Open(i)
-    if not spec then return end
+    if not build then return end
     if not frame then createWindow() end
     frame:Show()
     Window.ShowPage(i or current or 1)

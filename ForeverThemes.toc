@@ -5,7 +5,7 @@
 ## Notes-esES: Un tema para todos tus addons Forever y, si quieres, para las ventanas de Blizzard.
 ## Notes-esMX: Un tema para todos tus addons Forever y, si quieres, para las ventanas de Blizzard.
 ## Notes-frFR: Un thème pour tous vos addons Forever, et en option pour les fenêtres de Blizzard.
-## Version: 1.0.1
+## Version: 1.0.2
 ## X-Curse-Project-ID: 1807938
 ## IconTexture: Interface\AddOns\ForeverThemes\Media\MinimapIcon.tga
 ## AddonCompartmentFunc: ForeverThemes_OnAddonCompartmentClick
