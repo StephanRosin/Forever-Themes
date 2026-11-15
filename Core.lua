@@ -33,8 +33,20 @@ end
 --   blizzardTexts, damageFont, platynator   the Blizzard texts and Platynator bridges
 --   minimapShow, minimapAngle, language
 --   migrated               the first run's take-over done (Migrate.lua)
+-- A new ForeverThemesDB starts with the author's choices: every window skin
+-- and both text bridges on, Pitwall in red and Comic in black. A stored one
+-- is never touched; the central theme itself is seeded in Hub.lua.
+local SKINS = { "skinCharacter", "skinSpellbook", "skinTalents", "skinProfessions", "skinLegacy",
+    "skinCommunities", "skinCollections" }
+ns.SKINS = SKINS
+function ns.NewAccountDB()
+    local db = { blizzardTexts = true, platynatorFont = true, colors = { PITWALL = "RED", COMIC = "BLACK" } }
+    for _, key in ipairs(SKINS) do db[key] = true end
+    return db
+end
+
 function ns.AccountDB()
-    ForeverThemesDB = ForeverThemesDB or {}
+    ForeverThemesDB = ForeverThemesDB or ns.NewAccountDB()
     return ForeverThemesDB
 end
 

@@ -88,6 +88,8 @@ local function turnPage(frames)
 end
 
 local ns = dofile("load.lua")()
+-- A stored ForeverThemesDB without the switch (a new one has every skin on).
+ForeverThemesDB = {}
 
 local pass, fail = 0, 0
 local function check(label, got, want)
@@ -124,8 +126,8 @@ check("second load does not recreate", Skin.Parts(), art)
 check("page-turn callback registered", paged._callback and paged._callback[1], "OnUpdate")
 check("own owner (not the book)", paged._callback[3] == Skin, true)
 
-print("\nSwitch off (default):")
-check("off by default", Skin.Enabled(), false)
+print("\nSwitch off:")
+check("off in a stored DB without it", Skin.Enabled(), false)
 Themes.Switch("WOOD")
 local title = frame.TitleContainer.TitleText
 check("Wood without switch: NineSlice stays", alpha(frame.NineSlice), 1)

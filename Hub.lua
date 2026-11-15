@@ -15,9 +15,12 @@ for its backup): tried again after combat and every RETRY_SECONDS, at most
 MAX_RETRIES times, then the chat names it.
 
 First run (no central theme yet): nothing may change for the player. The
-central theme is the most common one among the addons (tie: Unit Frames',
-else the first in the theme order), its colour the most common among those
-wearing it; every addon whose theme or colour differs keeps its own. This
+central theme is the most common one among the addons that wear a theme
+(Classic does not count; tie: Unit Frames', else the first in the theme
+order), its colour the most common among those wearing it; every addon whose
+theme or colour differs keeps its own. When no addon wears a theme (none
+there, or all Classic), the central theme is DEFAULT_THEME and every addon
+follows it. This
 waits until every addon answers (Switch to its own current theme is a
 no-op that still reports a refusal), so a theme is never read from an addon
 that has not loaded its settings yet.
@@ -31,6 +34,7 @@ local Hub = {}
 ns.Hub = Hub
 
 local TIE_BREAKER = "ForeverUnitFrames"
+local DEFAULT_THEME = "PITWALL"
 local RETRY_SECONDS, MAX_RETRIES = 2, 30
 
 -- The registered addons, by title: { folder, title, entry }.
@@ -133,23 +137,25 @@ end
 function Hub.Seed()
     if Themes.IsSet() then return true end
     local addons = Hub.Addons()
-    -- Nothing to read from yet: the theme is seeded once an addon is there.
-    if #addons == 0 then return true end
     local themes, current = {}, {}
     for _, addon in ipairs(addons) do
         if not ready(addon) then return false end
         local theme, color = Hub.Current(addon)
         current[addon.folder] = { theme = theme, color = color }
-        if theme then themes[theme] = (themes[theme] or 0) + 1 end
+        if theme and theme ~= Themes.CLASSIC then themes[theme] = (themes[theme] or 0) + 1 end
     end
+    local store = ns.AccountDB()
     local preferred = current[TIE_BREAKER] or {}
-    local theme = mostCommon(themes, preferred.theme, Lib.IDS) or Themes.CLASSIC
+    local theme = mostCommon(themes, preferred.theme, Lib.IDS)
+    if not theme then
+        store.theme = DEFAULT_THEME
+        return true
+    end
     local colors = {}
     for _, now in pairs(current) do
         if now.theme == theme and now.color then colors[now.color] = (colors[now.color] or 0) + 1 end
     end
     local color = mostCommon(colors, preferred.theme == theme and preferred.color or nil, Lib.Colors(theme))
-    local store = ns.AccountDB()
     store.follow = store.follow or {}
     for _, addon in ipairs(addons) do
         local now = current[addon.folder]

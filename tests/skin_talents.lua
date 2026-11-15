@@ -61,6 +61,8 @@ local function loadBlizzard()
 end
 
 local ns = dofile("load.lua")()
+-- A stored ForeverThemesDB without the switch (a new one has every skin on).
+ForeverThemesDB = {}
 
 local pass, fail = 0, 0
 local function check(label, got, want)
@@ -91,8 +93,8 @@ check("Blizzard_PlayerSpells loaded: created", back ~= nil, true)
 check("OnShow hooked", frame._scriptHooks.OnShow ~= nil, true)
 local panel = dofile("reference.lua")(ns)
 
-print("\nSwitch off (default):")
-check("off by default", Skin.Enabled(), false)
+print("\nSwitch off:")
+check("off in a stored DB without it", Skin.Enabled(), false)
 Themes.Switch("WOOD")
 check("Wood without switch: background stays", alpha(frame.Background), 1)
 check("Wood without switch: no tile", back:IsShown(), false)

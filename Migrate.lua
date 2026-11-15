@@ -13,8 +13,7 @@ local _, ns = ...
 local Migrate = {}
 ns.Migrate = Migrate
 
-local SKINS = { "skinCharacter", "skinSpellbook", "skinTalents", "skinProfessions", "skinLegacy",
-    "skinCommunities", "skinCollections" }
+local SKINS = ns.SKINS
 
 -- Unit Frames' General of this character's profile (its UnitProfiles.lua:
 -- .active["Name-Realm"], else Default; .profile is an older version's).

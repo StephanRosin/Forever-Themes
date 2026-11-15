@@ -33,6 +33,8 @@ local function tex(atlas, alpha)
 end
 
 local ns = dofile("load.lua")()
+-- A stored ForeverThemesDB without the switch (a new one has every skin on).
+ForeverThemesDB = {}
 
 local function fire(event, ...)
     for _, f in ipairs(M.frames) do
@@ -121,8 +123,8 @@ local art = Skin.Parts()
 check("created after combat", art ~= nil, true)
 local title = frame.TitleContainer.TitleText
 
-print("\nSwitch off (default):")
-check("off by default", Skin.Enabled(), false)
+print("\nSwitch off:")
+check("off in a stored DB without it", Skin.Enabled(), false)
 Themes.Switch("WOOD")
 check("Wood without switch: NineSlice stays", alpha(frame.NineSlice), 1)
 check("Wood without switch: no tile", art.back:IsShown(), false)

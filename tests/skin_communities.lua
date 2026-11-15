@@ -81,6 +81,8 @@ local function loadBlizzardCommunities()
 end
 
 local ns = dofile("load.lua")()
+-- A stored ForeverThemesDB without the switch (a new one has every skin on).
+ForeverThemesDB = {}
 
 local pass, fail = 0, 0
 local function check(label, got, want)
@@ -112,8 +114,8 @@ fire("ADDON_LOADED", "Blizzard_Communities")
 check("second load does not recreate", Skin.Parts(), art)
 local title = frame.TitleContainer.TitleText
 
-print("\nSwitch off (default):")
-check("off by default", Skin.Enabled(), false)
+print("\nSwitch off:")
+check("off in a stored DB without it", Skin.Enabled(), false)
 Themes.Switch("WOOD")
 check("Wood without switch: NineSlice stays", alpha(frame.NineSlice), 1)
 check("Wood without switch: no tile", art.back:IsShown(), false)

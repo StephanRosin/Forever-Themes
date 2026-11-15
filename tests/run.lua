@@ -173,14 +173,42 @@ check("Color()", api.Color(), Themes.Color())
 check("Follows: own", api.Follows("ForeverQuestLog"), false)
 check("Follows: unknown addon follows", api.Follows("SomethingNew"), true)
 
-section("Seeding with no addon yet")
+section("Defaults: the author's choices on a new ForeverThemesDB only")
 do
     local saved = _G.ForeverThemes
     _G.ForeverThemes = {}
-    ForeverThemesDB = {}
+    ForeverThemesDB = nil
+    local fresh = ns.AccountDB()
+    local on = 0
+    for _, key in ipairs(ns.SKINS) do if fresh[key] == true then on = on + 1 end end
+    check("new: every window skin on", on, 7)
+    check("new: Blizzard texts on", fresh.blizzardTexts, true)
+    check("new: Platynator on", fresh.platynatorFont, true)
+    check("new: no theme before the seed", Themes.IsSet(), false)
     Hub.Sync()
-    check("nothing to seed from: stays unset", Themes.IsSet(), false)
-    check("Classic meanwhile", Themes.Current(), "CLASSIC")
+    check("no addon to take over: Pitwall", Themes.Current(), "PITWALL")
+    check("Pitwall in red", Themes.Color(), "RED")
+    check("Comic in black once picked", Themes.Color("COMIC"), "BLACK")
+    local stored = { theme = "WOOD", colors = { PITWALL = "ORANGE" } }
+    ForeverThemesDB = stored
+    check("a stored DB is not filled up", ns.AccountDB().skinTalents, nil)
+    check("its colours stay", Themes.Color("PITWALL"), "ORANGE")
+    check("its theme stays", Themes.Current(), "WOOD")
+    -- Every addon on Classic: nothing taken over, all follow the default.
+    local c1, c2 = addon("ClassicOne", "CLASSIC"), addon("ClassicTwo", "CLASSIC")
+    _G.ForeverThemes = { ClassicOne = c1.entry, ClassicTwo = c2.entry }
+    ForeverThemesDB = ns.NewAccountDB()
+    Hub.Sync()
+    check("all Classic: Pitwall", Themes.Current(), "PITWALL")
+    check("all Classic: they follow", Hub.Follows("ClassicOne"), true)
+    check("all Classic: switched", c1.theme .. " " .. c2.theme, "PITWALL PITWALL")
+    -- Classic next to a theme: the theme is taken over, Classic kept.
+    c1.theme, c2.theme = "CLASSIC", "WOOD"
+    ForeverThemesDB = ns.NewAccountDB()
+    Hub.Sync()
+    check("Classic and Wood: Wood", Themes.Current(), "WOOD")
+    check("the Classic one keeps its own", Hub.Follows("ClassicOne"), false)
+    check("and stays Classic", c1.theme, "CLASSIC")
     _G.ForeverThemes = saved
 end
 ForeverThemesDB = { theme = "WOOD", follow = { ForeverQuestLog = false } }
