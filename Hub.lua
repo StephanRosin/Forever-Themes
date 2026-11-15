@@ -18,9 +18,8 @@ First run (no central theme yet): nothing may change for the player. The
 central theme is the most common one among the addons that wear a theme
 (Classic does not count; tie: Unit Frames', else the first in the theme
 order), its colour the most common among those wearing it; every addon whose
-theme or colour differs keeps its own. When no addon wears a theme (none
-there, or all Classic), the central theme is DEFAULT_THEME and every addon
-follows it. This
+theme or colour differs keeps its own. All of them on Classic: the central
+theme is Classic. No Forever addon at all: DEFAULT_THEME. This
 waits until every addon answers (Switch to its own current theme is a
 no-op that still reports a refusal), so a theme is never read from an addon
 that has not loaded its settings yet.
@@ -148,7 +147,10 @@ function Hub.Seed()
     local preferred = current[TIE_BREAKER] or {}
     local theme = mostCommon(themes, preferred.theme, Lib.IDS)
     if not theme then
-        store.theme = DEFAULT_THEME
+        -- Forever addons all on Classic stay Classic: installing the hub
+        -- changes nothing a player already sees. Pitwall only for a start
+        -- without any themed Forever addon at all.
+        store.theme = #addons > 0 and Themes.CLASSIC or DEFAULT_THEME
         return true
     end
     local colors = {}

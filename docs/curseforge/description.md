@@ -41,5 +41,5 @@ The game reads the font of the damage numbers only when you log in, so after a t
 
 ## Good to know
 - Forever Themes is optional. Every Forever addon works without it, with its own theme setting as before.
-- Your current choices carry over: the central theme is the one your Forever addons already wear, and an addon wearing a different one keeps it, so nothing changes when you install it. If none of them wears a theme yet, you start with Pitwall in red.
+- Your current choices carry over: the central theme is the one your Forever addons already wear, and an addon wearing a different one keeps it, so nothing changes when you install it. If you have no Forever addon yet, you start with Pitwall in red.
 - No effect on performance in combat: themes are applied when you change them, not every frame.
