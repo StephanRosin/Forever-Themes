@@ -1,10 +1,10 @@
--- Blizzards Vermaechtnis-Fenster im Theme (Skins/Skin.lua, Skins/Legacy.lua).
--- Eigene Datei, damit wowmock.lua unberuehrt bleibt: das Fenster ist hier
--- nachgestellt, so weit das Addon es anfasst (Blizzard_LegacySystem.xml).
+-- Blizzard's legacy frame in the theme (Skins/Skin.lua, Skins/Legacy.lua).
+-- Own file so wowmock.lua stays untouched: the frame is rebuilt here
+-- as far as the addon touches it (Blizzard_LegacySystem.xml).
 local M = dofile("wowmock.lua")
 
--- Blizzards Rahmen: zaehlt jede Aenderung an Anordnung und Sichtbarkeit
--- (verboten: nur Texturen, Schriften, Deckkraft).
+-- Blizzard's frames: counts every change to layout and visibility
+-- (forbidden: only textures, fonts, alpha).
 local layoutCalls = 0
 local function blizzard(name)
     local w = M.newWidget(name)
@@ -34,7 +34,7 @@ end
 
 local function regions(frame, list) function frame:GetRegions() return unpack(list) end end
 
--- Das Fenster entsteht erst, wenn Blizzard_LegacySystem laedt (nach dem Login).
+-- The frame only exists once Blizzard_LegacySystem loads (after login).
 local frame, closeTextures, tab, pages, dividers
 local function loadBlizzardLegacy()
     frame = blizzard("LegacySystemFrame")
@@ -65,7 +65,7 @@ local function loadBlizzardLegacy()
         regions(pages[key].VerticalDivider, { d })
         dividers[key] = d
     end
-    -- Die Belohnungsleiste hat keine Trennlinie (der Mock liefert sonst eine Funktion).
+    -- The reward track has no divider (otherwise the mock returns a function).
     pages.RewardTrackPage.VerticalDivider = false
     local track = pages.RewardTrackPage
     track.PointsLabel, track.Points = track:CreateFontString(), track:CreateFontString()
@@ -80,7 +80,7 @@ local ns = dofile("load.lua")()
 local pass, fail = 0, 0
 local function check(label, got, want)
     if got == want then pass = pass + 1; print(("  OK   %-52s -> %s"):format(label, tostring(got)))
-    else fail = fail + 1; print(("  FAIL %-52s -> %s   (erwartet: %s)"):format(label, tostring(got), tostring(want))) end
+    else fail = fail + 1; print(("  FAIL %-52s -> %s   (want: %s)"):format(label, tostring(got), tostring(want))) end
 end
 local function list(t) return t and table.concat(t, ",") or "nil" end
 
@@ -94,53 +94,53 @@ local Themes, Skin, Media = ns.Themes, ns.LegacySkin, ns.Media
 local FRIZ = "Fonts\\FRIZQT__.TTF"
 local function alpha(region) return region:GetAlpha() end
 
-print("\nLaden bei Bedarf:")
+print("\nLoad on demand:")
 fire("PLAYER_LOGIN")
-check("Login ohne Fenster: nichts angelegt", Skin.Parts(), nil)
+check("login without frame: nothing created", Skin.Parts(), nil)
 loadBlizzardLegacy()
 fire("ADDON_LOADED", "Blizzard_Calendar")
-check("fremdes Addon geladen: nichts angelegt", Skin.Parts(), nil)
+check("other addon loaded: nothing created", Skin.Parts(), nil)
 fire("ADDON_LOADED", "Blizzard_LegacySystem")
 local art = Skin.Parts()
-check("Blizzard_LegacySystem geladen: angelegt", art ~= nil, true)
+check("Blizzard_LegacySystem loaded: created", art ~= nil, true)
 fire("ADDON_LOADED", "Blizzard_LegacySystem")
-check("zweites Laden: dieselbe Kunst", Skin.Parts(), art)
+check("second load: same art", Skin.Parts(), art)
 local panel = dofile("reference.lua")(ns)
 local title = frame.TitleContainer.TitleText
 local treeLabel = pages.TreePage.LegacyTreeTraitPanel.SelectedTreeIcon.SelectedTreeLabel
 local track = pages.RewardTrackPage
 
-print("\nSchalter aus (Standard):")
-check("Standard aus", Skin.Enabled(), false)
+print("\nSwitch off (default):")
+check("off by default", Skin.Enabled(), false)
 Themes.Switch("WOOD")
-check("Wood ohne Schalter: NineSlice bleibt", alpha(frame.NineSlice), 1)
-check("Wood ohne Schalter: keine Kachel", art.back:IsShown(), false)
-check("Wood ohne Schalter: Titel in Friz", (title:GetFont()), FRIZ)
+check("Wood without switch: NineSlice stays", alpha(frame.NineSlice), 1)
+check("Wood without switch: no tile", art.back:IsShown(), false)
+check("Wood without switch: title in Friz", (title:GetFont()), FRIZ)
 
-print("\nSchalter an:")
+print("\nSwitch on:")
 layoutCalls = 0
 Skin.SetEnabled(true)
-check("gespeichert kontoweit", ForeverThemesDB.skinLegacy, true)
-check("Kachel sichtbar", art.back:IsShown(), true)
-check("NineSlice aus", alpha(frame.NineSlice), 0)
-check("Portraet aus", alpha(frame.PortraitContainer), 0)
-check("Felsenkachel aus", alpha(frame.Bg), 0)
-check("Streifen aus", alpha(frame.TopTileStreaks), 0)
-for key, page in pairs(pages) do check(key .. ": Hintergrund aus", alpha(page.Background), 0) end
+check("saved account-wide", ForeverThemesDB.skinLegacy, true)
+check("tile visible", art.back:IsShown(), true)
+check("NineSlice off", alpha(frame.NineSlice), 0)
+check("portrait off", alpha(frame.PortraitContainer), 0)
+check("rock tile off", alpha(frame.Bg), 0)
+check("streaks off", alpha(frame.TopTileStreaks), 0)
+for key, page in pairs(pages) do check(key .. ": background off", alpha(page.Background), 0) end
 local line = Themes.Spec("WOOD").art.line
-check("Trennlinie in der Linienfarbe", list(dividers.TreePage._vertex), list(line))
-check("Trennlinie entsaettigt", dividers.ChallengesPage:IsDesaturated(), true)
-check("Schliessen: Blizzards Bild aus", alpha(closeTextures[1]), 0)
-check("Titel: Cinzel", (title:GetFont()), Media.FontPath("Cinzel"))
-check("Punkte-Ueberschrift: bodyFont Friz -> Zierschrift", (track.PointsLabel:GetFont()), Media.FontPath("Cinzel"))
-check("Baumname: Zierschrift", (treeLabel:GetFont()), Media.FontPath("Cinzel"))
-check("Punktzahl unberuehrt", (track.Points:GetFont()), FRIZ)
+check("divider in the line colour", list(dividers.TreePage._vertex), list(line))
+check("divider desaturated", dividers.ChallengesPage:IsDesaturated(), true)
+check("close: Blizzard's art off", alpha(closeTextures[1]), 0)
+check("title: Cinzel", (title:GetFont()), Media.FontPath("Cinzel"))
+check("points heading: bodyFont Friz -> display font", (track.PointsLabel:GetFont()), Media.FontPath("Cinzel"))
+check("tree name: display font", (treeLabel:GetFont()), Media.FontPath("Cinzel"))
+check("point count untouched", (track.Points:GetFont()), FRIZ)
 local icon = Themes.IconColor()
-check("Reiter: Auswahl in der Symbolfarbe", list(tab.SelectedTexture._vertex), list({ icon[1], icon[2], icon[3], 1 }))
-check("Reiter: entsaettigt", tab.SelectedTexture:IsDesaturated(), true)
-check("keine Anordnung an Blizzards Rahmen", layoutCalls, 0)
+check("tab: selection in the icon colour", list(tab.SelectedTexture._vertex), list({ icon[1], icon[2], icon[3], 1 }))
+check("tab: desaturated", tab.SelectedTexture:IsDesaturated(), true)
+check("no layout on Blizzard's frames", layoutCalls, 0)
 
-print("\nWie das Panel, je Theme und Farbe:")
+print("\nLike the panel, per theme and colour:")
 local mismatch = {}
 for _, id in ipairs(Themes.IDS) do
     if id ~= Themes.CLASSIC then
@@ -149,67 +149,67 @@ for _, id in ipairs(Themes.IDS) do
             Themes.SetColor(color, id)
             panel.Paint()
             local where = id .. "/" .. color
-            if art.back._texture ~= panel.bg._texture then mismatch[#mismatch + 1] = where .. " Textur" end
-            if list(art.back._vertex) ~= list(panel.bg._vertex) then mismatch[#mismatch + 1] = where .. " Toenung" end
+            if art.back._texture ~= panel.bg._texture then mismatch[#mismatch + 1] = where .. " texture" end
+            if list(art.back._vertex) ~= list(panel.bg._vertex) then mismatch[#mismatch + 1] = where .. " tint" end
             local mine, theirs = ns.Border.Pieces(art.over)[1], ns.Border.Pieces(panel)[1]
-            if list(mine._vertex) ~= list(theirs._vertex) then mismatch[#mismatch + 1] = where .. " Rand" end
+            if list(mine._vertex) ~= list(theirs._vertex) then mismatch[#mismatch + 1] = where .. " border" end
         end
     end
 end
-check("Kachel, Toenung und Rand wie das InfoPanel", table.concat(mismatch, "; "), "")
+check("tile, tint and border like the InfoPanel", table.concat(mismatch, "; "), "")
 
-print("\nThemenwechsel:")
+print("\nTheme switch:")
 Themes.SetColor("ORANGE", "PITWALL")
 Themes.Switch("PITWALL")
-check("Pitwall: Keil", art.wedge:IsShown(), true)
-check("Pitwall: Keil in der Farbe", list(art.wedge._vertex), list(Themes.Wedge({ 0.882, 0.024, 0, 1 })))
-check("Pitwall: Titel Titillium", (title:GetFont()), Media.FontPath("Titillium Web Bold Italic"))
-check("Pitwall: Baumname in der Textschrift", (treeLabel:GetFont()), Media.FontPath("Titillium Web SemiBold"))
+check("Pitwall: wedge", art.wedge:IsShown(), true)
+check("Pitwall: wedge in the colour", list(art.wedge._vertex), list(Themes.Wedge({ 0.882, 0.024, 0, 1 })))
+check("Pitwall: title Titillium", (title:GetFont()), Media.FontPath("Titillium Web Bold Italic"))
+check("Pitwall: tree name in the body font", (treeLabel:GetFont()), Media.FontPath("Titillium Web SemiBold"))
 Themes.Switch("FROST")
-check("Frost: Titel Julius", (title:GetFont()), Media.FontPath("Julius Sans One"))
-check("Frost: kein Keil", art.wedge:IsShown(), false)
-check("Frost: Trennlinie in Frosts Linienfarbe", list(dividers.TreePage._vertex), list(Themes.Spec("FROST").art.line))
--- Eine Seite gezeigt: Blizzard setzt Titel neu, einen Takt spaeter nachgezogen.
+check("Frost: title Julius", (title:GetFont()), Media.FontPath("Julius Sans One"))
+check("Frost: no wedge", art.wedge:IsShown(), false)
+check("Frost: divider in Frost's line colour", list(dividers.TreePage._vertex), list(Themes.Spec("FROST").art.line))
+-- A page shown: Blizzard resets the title, reapplied one tick later.
 title:SetTextColor(1, 1, 1, 1)
 M.timers = {}
 pages.TreePage._scriptHooks.OnShow()
 for _, fn in ipairs(M.timers) do fn() end
 local accent = Themes.Accent(Themes.SPECS.FROST.look.headerColor)
-check("Seite gezeigt: Titel wieder im Akzent", list(title._textColor), list({ accent[1], accent[2], accent[3], 1 }))
+check("page shown: title back in the accent", list(title._textColor), list({ accent[1], accent[2], accent[3], 1 }))
 
-print("\nKlassisch stellt alles her:")
+print("\nClassic restores everything:")
 Themes.Switch("CLASSIC")
-check("NineSlice zurueck", alpha(frame.NineSlice), 1)
-check("Felsenkachel zurueck", alpha(frame.Bg), 1)
-check("Seitenhintergrund zurueck", alpha(pages.TreePage.Background), 1)
-check("Trennlinie ungetoent", list(dividers.TreePage._vertex), "1,1,1,1")
-check("Trennlinie nicht entsaettigt", dividers.TreePage:IsDesaturated(), false)
-check("Kachel aus", art.back:IsShown(), false)
-check("Keil aus", art.wedge:IsShown(), false)
-check("Titel in Friz", (title:GetFont()), FRIZ)
-check("Baumname in Friz", (treeLabel:GetFont()), FRIZ)
-check("Reiter ungetoent", list(tab.SelectedTexture._vertex), "1,1,1,1")
-check("Schliessen: Blizzards Bild zurueck", alpha(closeTextures[1]), 1)
-check("Ring weg", ns.Border.Pieces(art.over)[1]:IsShown(), false)
+check("NineSlice back", alpha(frame.NineSlice), 1)
+check("rock tile back", alpha(frame.Bg), 1)
+check("page background back", alpha(pages.TreePage.Background), 1)
+check("divider untinted", list(dividers.TreePage._vertex), "1,1,1,1")
+check("divider not desaturated", dividers.TreePage:IsDesaturated(), false)
+check("tile off", art.back:IsShown(), false)
+check("wedge off", art.wedge:IsShown(), false)
+check("title in Friz", (title:GetFont()), FRIZ)
+check("tree name in Friz", (treeLabel:GetFont()), FRIZ)
+check("tab untinted", list(tab.SelectedTexture._vertex), "1,1,1,1")
+check("close: Blizzard's art back", alpha(closeTextures[1]), 1)
+check("ring gone", ns.Border.Pieces(art.over)[1]:IsShown(), false)
 
-print("\nSchalter aus unter einem Theme:")
+print("\nSwitch off under a theme:")
 Themes.Switch("TECH")
-check("Tech: Titel Space Grotesk", (title:GetFont()), Media.FontPath("Space Grotesk"))
+check("Tech: title Space Grotesk", (title:GetFont()), Media.FontPath("Space Grotesk"))
 Skin.SetEnabled(false)
-check("aus: gespeichert ohne Eintrag", ForeverThemesDB.skinLegacy, nil)
-check("aus: NineSlice zurueck", alpha(frame.NineSlice), 1)
-check("aus: Titel in Friz", (title:GetFont()), FRIZ)
-check("aus: Kachel aus", art.back:IsShown(), false)
+check("off: saved without entry", ForeverThemesDB.skinLegacy, nil)
+check("off: NineSlice back", alpha(frame.NineSlice), 1)
+check("off: title in Friz", (title:GetFont()), FRIZ)
+check("off: tile off", art.back:IsShown(), false)
 frame._scriptHooks.OnShow()
-check("aus: Zeigen aendert nichts", alpha(frame.NineSlice), 1)
+check("off: showing changes nothing", alpha(frame.NineSlice), 1)
 
-print("\nFallen:")
+print("\nTraps:")
 local h = assert(io.open(ADDONDIR .. "/Skins/Legacy.lua")); local src = h:read("*a"); h:close()
--- Kommentare zaehlen nicht: sie erklaeren gerade, warum es fehlt.
+-- Comments do not count: they explain why it is missing.
 src = src:gsub("%-%-%[%[.-%]%]", ""):gsub("%-%-[^\n]*", "")
-check("kein hooksecurefunc", src:find("hooksecurefunc") == nil, true)
-check("Schalter in allen Sprachen", ns.Locales.deDE.OPT_SKIN_LEGACY ~= nil and ns.Locales.esES.OPT_SKIN_LEGACY ~= nil
+check("no hooksecurefunc", src:find("hooksecurefunc") == nil, true)
+check("switch in all languages", ns.Locales.deDE.OPT_SKIN_LEGACY ~= nil and ns.Locales.esES.OPT_SKIN_LEGACY ~= nil
     and ns.Locales.frFR.OPT_SKIN_LEGACY ~= nil and ns.Locales.enUS.OPT_SKIN_LEGACY ~= nil, true)
 
-print(("\n%d bestanden, %d fehlgeschlagen"):format(pass, fail))
+print(("\n%d passed, %d failed"):format(pass, fail))
 os.exit(fail == 0 and 0 or 1)

@@ -1,37 +1,36 @@
 --[[---------------------------------------------------------------------------
-Skins/Communities.lua -- Blizzards Fenster "Gilde & Communitys"
+Skins/Communities.lua -- Blizzard's "Guild & Communities" window
 (CommunitiesFrame, Forever 1.60.1: Blizzard_Communities/CommunitiesFrame.xml,
-laedt bei Bedarf) im zentralen Theme. Der Menueeintrag und die Taste
-oeffnen es ueber ToggleGuildFrame -> ToggleCommunitiesFrame (Camelot nutzt
-Mainline/Game.lua); FriendsFrame hat hier keinen Gildenreiter. Schalter
-"Blizzards Gildenfenster im Theme" (Optionen, Blizzards Fenster), kontoweit,
-Standard aus. Gebaut wie Skins/Character.lua.
+loads on demand) in the central theme. The menu entry and the key open it
+through ToggleGuildFrame -> ToggleCommunitiesFrame (Camelot uses
+Mainline/Game.lua); FriendsFrame has no guild tab here. Option
+"Theme Blizzard's guild & communities window" (options, Blizzard's windows),
+account-wide, off by default. Built like Skins/Character.lua.
 
-Im Theme:
-  - Rahmen: NineSlice, Portraet samt Wappen (PortraitOverlay), Fels-Kachel,
-    Streifen unter dem Titel und der Innenrahmen (Inset) aus, darunter
-    Theme-Kachel, Ring, Titelstreifen, Pitwall-Keil, Ornamente
-    (Skin.PaintArt) -- wie die Panels der Forever-Addons je Theme und Farbe.
-  - Linke Liste (Communitys): Blizzards blaue Flaeche und Zierrand aus.
-  - Gildeninfo: Pergament und Kopfbaender aus, die Ueberschriften in der
-    Theme-Schrift und im Akzent (wie die Kopfzeilen der Werteliste).
-  - Titel in der Theme-Schrift und im Akzent; Bezeichnungen ("Offline
-    anzeigen", "Gildenruf:") in der Textschrift (Friz bleibt).
-  - Schliessen: das gezeichnete Kreuz in der Symbolfarbe.
-  - Seitenreiter rechts: Rahmen grau, Auswahl und Hover in der Symbolfarbe.
-Blizzard bleibt: Chat und Eingabezeile, Mitgliederliste samt Spalten,
-Neuigkeiten, Vorteile, Gildensuche, Bildlaufleisten, Auswahllisten, Knopf
-Maximieren/Minimieren, die Rahmen um Chat und Listen.
+Themed:
+  - Frame: NineSlice, portrait with crest (PortraitOverlay), rock tile,
+    streaks under the title and the inset hidden; under them the theme tile,
+    ring, title strip, Pitwall wedge, ornaments
+    (Skin.PaintArt) -- like the Forever addons' panels per theme and colour.
+  - Left list (communities): Blizzard's blue fill and ornate edge hidden.
+  - Guild info: parchment and header bands hidden, the headings in the theme
+    font and accent (like the stat headers in the character window).
+  - Title in the theme font and accent; labels ("Show offline",
+    "Guild reputation:") in the text font (Friz stays).
+  - Close: the drawn cross in the icon colour.
+  - Side tabs on the right: frame grey, selection and hover in the icon colour.
+Blizzard's stays: chat and input line, member list with its columns, news,
+perks, guild finder, scroll bars, dropdowns, the maximize/minimize button,
+the frames around chat and lists.
 
-Klassisch oder Schalter aus: alles wie von Blizzard (Skin.Restore).
+Classic or option off: everything as Blizzard built it (Skin.Restore).
 
-Nachgezogen bei jedem Zeigen, bei jeder Groessenaenderung (Minimieren
-wechselt 814x426 <-> 322x406, die Rundung haengt an der Groesse) und wenn
-sich Theme, Farbe oder Schalter aendern. Nur Texturen, Schriften, Deckkraft.
-Chat- und Gildentexte (MOTD, Infotext, Namen) werden nie angefasst: sie
-koennen geheim sein, und Media.ApplyText liest Text erneut.
-CommunitiesFrame ist nicht geschuetzt: die eigenen Teile duerfen auch
-entstehen, wenn Blizzard_Communities erst im Kampf laedt.
+Refreshed on every show, on every resize (minimizing switches 814x426 <->
+322x406, the rounding depends on the size) and when theme, colour or option
+change. Only textures, fonts, alpha. Chat and guild texts (MOTD, info text,
+names) are never touched: they can be secret, and Media.ApplyText reads text
+again. CommunitiesFrame is not protected: our own parts may be created even
+when Blizzard_Communities only loads in combat.
 -----------------------------------------------------------------------------]]
 
 local ADDON, ns = ...
@@ -41,11 +40,11 @@ local CommunitiesSkin = {}
 ns.CommunitiesSkin = CommunitiesSkin
 
 local BLIZZARD_ADDON = "Blizzard_Communities"
--- Fels-Kachel und Streifen beginnen 21 unter der Oberkante (ButtonFrameBaseTemplate).
+-- Rock tile and streaks start 21 below the top edge (ButtonFrameBaseTemplate).
 local TITLE_HEIGHT = 21
 local TAB_TINT = { 0.3, 0.3, 0.3, 1 }
 local BODY_FONT = "Friz Quadrata"
--- Die Seitenreiter (CommunitiesFrameTabTemplate -> RightSideTabTemplate).
+-- The side tabs (CommunitiesFrameTabTemplate -> RightSideTabTemplate).
 local TABS = { "ChatTab", "RosterTab", "GuildBenefitsTab", "GuildInfoTab", "GuildPreferredPlaySettingsTab" }
 local LIST_ART = { "Bg", "TopFiligree", "BottomFiligree", "FilligreeOverlay" }
 
@@ -70,7 +69,7 @@ local function active()
     return CommunitiesSkin.Enabled() and Themes.Current() ~= Themes.CLASSIC
 end
 
--- Wie Character.lua (Kandidat fuer Skin.lua): Zierschrift, Textschrift ohne Friz.
+-- As in Character.lua (candidate for Skin.lua): title font, text font unless Friz.
 local function fonts()
     if not LibForeverThemes.LatinClient() then return nil, nil end
     local spec = Themes.Spec(Themes.Current())
@@ -88,9 +87,9 @@ local function regions(frame)
     return frame and frame.GetRegions and { frame:GetRegions() } or {}
 end
 
--- Gildeninfo (CommunitiesGuildInfoFrameTemplate): Pergament, Kopfbaender und
--- Wappen-Hintergrund liegen im BACKGROUND, die Ueberschriften sind die
--- Schriften der Ebene selbst (MOTD und Infotext sind Kinder, nicht dabei).
+-- Guild info (CommunitiesGuildInfoFrameTemplate): parchment, header bands and
+-- crest background sit in BACKGROUND, the headings are the layer's own font
+-- strings (MOTD and info text are children, so not included).
 local function skinGuildInfo(info, display)
     local flag, color = titleStyle()
     for _, region in ipairs(regions(info)) do
@@ -116,7 +115,7 @@ local function skinTabs(frame, accent)
     for _, key in ipairs(TABS) do
         local tab = frame[key]
         if type(tab) == "table" then
-            -- Der Reiterrahmen (SpellBook-SkillLineTab) ist die einzige Textur im BORDER.
+            -- The tab frame (SpellBook-SkillLineTab) is the sole texture in BORDER.
             for _, region in ipairs(regions(tab)) do
                 if region.GetDrawLayer and region:GetDrawLayer() == "BORDER" then Skin.Tint(rec, region, TAB_TINT, true) end
             end
@@ -150,7 +149,7 @@ local function signature()
     return Themes.Current() .. "|" .. tostring(Themes.Color())
 end
 
--- force: auch ohne Aenderung von Theme, Farbe, Schalter (Zeigen, neue Groesse).
+-- force: even if theme, colour, option are unchanged (show, new size).
 function CommunitiesSkin.Apply(force)
     local frame = _G.CommunitiesFrame
     if not (frame and art) then return end
@@ -172,7 +171,7 @@ function CommunitiesSkin.SetEnabled(on)
     CommunitiesSkin.Apply()
 end
 
--- Beim Login oder wenn Blizzard_Communities nachlaedt: eigene Teile anlegen.
+-- At login or when Blizzard_Communities loads later: create our own parts.
 function CommunitiesSkin.Setup()
     local frame = _G.CommunitiesFrame
     if not frame or art then return end
@@ -184,10 +183,10 @@ function CommunitiesSkin.Setup()
     CommunitiesSkin.Apply(true)
 end
 
--- Fuer die Tests: die eigene Kunst.
+-- For the tests: our own art.
 function CommunitiesSkin.Parts() return art end
 
--- Laedt Blizzard_Communities vor dem Login, richtet PLAYER_LOGIN ein (Themes bereit).
+-- Loads Blizzard_Communities before login, sets up on PLAYER_LOGIN (themes ready).
 local loggedIn = false
 ns.On("PLAYER_LOGIN", function() loggedIn = true; CommunitiesSkin.Setup() end)
 ns.On("ADDON_LOADED", function(_, name) if name == BLIZZARD_ADDON and loggedIn then CommunitiesSkin.Setup() end end)

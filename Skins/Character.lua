@@ -1,36 +1,35 @@
 --[[---------------------------------------------------------------------------
-Skins/Character.lua -- Blizzards Charakterfenster (CharacterFrame, Forever
-1.60.1: Blizzard_UIPanels_Game/Camelot/CharacterFrame.xml) im zentralen
-Theme. Schalter "Blizzards Charakterfenster im Theme" (Optionen, unter
-Blizzards Fenster), kontoweit, Standard aus. Haengt nur an Skins/Skin.lua,
-Themes und einer Zeile in Options.lua.
+Skins/Character.lua -- Blizzard's character window (CharacterFrame, Forever
+1.60.1: Blizzard_UIPanels_Game/Camelot/CharacterFrame.xml) in the central
+theme. Option "Theme Blizzard's character window" (options, under Blizzard's
+windows), account-wide, off by default. Depends only on Skins/Skin.lua,
+Themes and one line in Options.lua.
 
-Im Theme:
-  - Rahmen: NineSlice und Portraet aus, darunter Theme-Kachel, Ring,
-    Titelstreifen (Glanz, Linie, Band, Pitwall-Keil), Ornamente
-    (Skin.PaintArt) -- Hintergrund und Toenung wie die Panels der Forever-Addons je Theme und Farbe.
-  - Hintergruende der linken und rechten Seite, Steinkopf, Klassenbild und
-    Innenrahmen der Werte-, Titel- und Ausruestungslisten aus; die
-    Trennlinie zwischen den Seiten in der Linienfarbe des Themes.
-  - Titel in der Theme-Schrift und Kopfzeilenfarbe (Akzent), Stufenzeile und
-    Bezeichnungen der Werte in der Textschrift (bodyFont; wo das Friz ist, bleibt Blizzards;
-    die Stufenzeile nimmt dort die Zierschrift).
-  - Kopfzeilen der Werte (Gegenstandsstufe, Attribute ...) ohne Blizzards
-    Band, Titel in Theme-Schrift und Akzent.
-  - Schliessen: das gezeichnete Kreuz in der Symbolfarbe.
-  - Seitenreiter: grau getoent, Auswahl und Hover in der Symbolfarbe.
-Blizzard bleibt: 3D-Modell samt Hintergrund, Ausruestungsplaetze, Reiter
-der Werteseite, Inhalt von Ruf, Fertigkeiten, PvP, Waehrung, Statistik,
-Bildlaufleisten, die Zahlen der Werteliste.
+Themed:
+  - Frame: NineSlice and portrait hidden; under them the theme tile, ring,
+    title strip (gloss, line, band, Pitwall wedge), ornaments
+    (Skin.PaintArt) -- background and tint like the Forever addons' panels per theme and colour.
+  - Backgrounds of the left and right pane, stone header, class image and
+    the insets of the stats, titles and equipment lists hidden; the divider
+    between the panes in the theme's line colour.
+  - Title in the theme font and header colour (accent); level line and stat
+    labels in the text font (bodyFont; where that is Friz, Blizzard's stays;
+    the level line then takes the title font).
+  - Stat headers (item level, attributes ...) without Blizzard's band, title
+    in the theme font and accent.
+  - Close: the drawn cross in the icon colour.
+  - Side tabs: tinted grey, selection and hover in the icon colour.
+Blizzard's stays: 3D model and its background, equipment slots, the stats
+pane's tabs, the content of reputation, skills, PvP, currency, statistics,
+scroll bars, the numbers in the stats list.
 
-Klassisch oder Schalter aus: alles wie von Blizzard (Skin.Restore).
+Classic or option off: everything as Blizzard built it (Skin.Restore).
 
-Nachgezogen wird bei jedem Zeigen des Fensters und eines Reiters (einen
-Takt spaeter: Blizzard setzt die Titelfarbe danach neu), bei jeder neu
-belegten Zeile der Werteliste (ScrollUtil-Rueckruf, kein Hook) und wenn sich
-Theme, Farbe oder Schalter aendern. Nur Texturen, Schriften, Deckkraft: das
-darf auch im Kampf laufen. Werte werden nie gelesen (Forever macht sie
-geheim).
+Refreshed on every show of the window and of a tab (one frame later:
+Blizzard sets the title colour again afterwards), on every newly filled row
+of the stats list (ScrollUtil callback, not a hook) and when theme, colour
+or option change. Only textures, fonts, alpha: that may run in combat too.
+Values are never read (Forever makes them secret).
 -----------------------------------------------------------------------------]]
 
 local ADDON, ns = ...
@@ -39,16 +38,16 @@ local Themes, Skin = ns.Themes, ns.Skin
 local CharacterSkin = {}
 ns.CharacterSkin = CharacterSkin
 
--- Die linke Seite beginnt 20 unter der Oberkante (LeftPaneHost, y = -20).
+-- The left pane starts 20 below the top edge (LeftPaneHost, y = -20).
 local TITLE_HEIGHT = 20
 local TAB_TINT = { 0.3, 0.3, 0.3, 1 }
 local BODY_FONT = "Friz Quadrata"
 local DIVIDER_WIDTH = 1
--- Blizzards Flaechen hinter den Seiten (CharacterFrame.xml, Camelot).
+-- Blizzard's fills behind the panes (CharacterFrame.xml, Camelot).
 local PANE_ATLASES = { ["UI-Character-Info-General-BG"] = true, ["UI-Character-Info-Stat-BG"] = true,
     ["UI-Character-Info-Stat-StoneBG3"] = true }
 local DIVIDER_ATLASES = { ["common-framedivider"] = true }
--- Die Seiten, die CharacterFrame:ShowSubFrame zeigt (CharacterFrameConstants.lua).
+-- The pages CharacterFrame:ShowSubFrame shows (CharacterFrameConstants.lua).
 local SUBFRAMES = { "PaperDollFrame", "ReputationFrame", "TokenFrame", "PVPRankFrame", "SkillsFrame",
     "StatisticsFrame" }
 
@@ -67,7 +66,7 @@ local art, divider
 local statRows = setmetatable({}, { __mode = "k" })
 local hooked = {}
 
--- ForeverThemesDB direkt gelesen: AccountDB() legte sie vor ADDON_LOADED an.
+-- ForeverThemesDB read directly: AccountDB() created it before ADDON_LOADED.
 function CharacterSkin.Enabled()
     return _G.ForeverThemesDB ~= nil and _G.ForeverThemesDB.skinCharacter == true
 end
@@ -76,7 +75,7 @@ local function active()
     return CharacterSkin.Enabled() and Themes.Current() ~= Themes.CLASSIC
 end
 
--- Theme-Schriften haben nur lateinische Buchstaben (LibForeverThemes.LatinClient).
+-- Theme fonts only have Latin letters (LibForeverThemes.LatinClient).
 local function fonts()
     if not LibForeverThemes.LatinClient() then return nil, nil end
     local spec = Themes.Spec(Themes.Current())
@@ -90,7 +89,7 @@ local function titleStyle()
     return look.headerFlag or "OUTLINE", { c[1], c[2], c[3], 1 }
 end
 
--- Eine Zeile der Werteliste: Kopfzeile (Title) oder Wert (Label, Value).
+-- A row of the stats list: header (Title) or stat (Label, Value).
 local function skinStatRow(row)
     statRows[row] = true
     if not active() then return end
@@ -100,8 +99,8 @@ local function skinStatRow(row)
         local flag, color = titleStyle()
         Skin.Font(rec, row.Title, display, flag, color)
     else
-        -- Nur die Bezeichnung: Media.ApplyText liest den Text spaeter noch
-        -- einmal (GetText), und der Wert kann geheim sein.
+        -- Only the label: Media.ApplyText reads the text again later
+        -- (GetText), and the value can be secret.
         Skin.Font(rec, row.Label, body)
     end
 end
@@ -142,9 +141,9 @@ local function skinTexts(frame)
     local flag, color = titleStyle()
     local title = frame.TitleContainer and frame.TitleContainer.TitleText
     Skin.Font(rec, title, display, flag, color)
-    -- Die Stufenzeile steht oben bei der Ueberschrift: ist die Textschrift
-    -- Friz (Blizzards eigene), nimmt sie die Zierschrift, sonst sieht sie
-    -- ungethemt aus (wie Themes.ForeignFont).
+    -- The level line sits up by the heading: if the text font is Friz
+    -- (Blizzard's own), it takes the title font, else it looks unthemed
+    -- (like Themes.ForeignFont).
     Skin.Font(rec, _G.CharacterLevelText, body or display)
     Skin.Font(rec, _G.PetCharacterLevelText, body or display)
 end
@@ -163,22 +162,22 @@ local function restore()
     Skin.CloseButton(rec, _G.CharacterFrame and _G.CharacterFrame.CloseButton, nil)
 end
 
--- Was gerade gilt, damit eine Einstellungsmeldung (Ziehen des Panels ...)
--- nicht jedes Mal neu zeichnet.
+-- What is currently applied, so a settings notification (dragging the panel ...)
+-- does not repaint every time.
 local drawn
 local function signature()
     if not active() then return "off" end
     return Themes.Current() .. "|" .. tostring(Themes.Color())
 end
 
--- force: auch wenn sich Theme, Farbe und Schalter nicht geaendert haben
--- (Fenster gezeigt: Blizzard setzt Farben und Bilder neu).
+-- force: even if theme, colour and option have not changed
+-- (window shown: Blizzard resets colours and images).
 function CharacterSkin.Apply(force)
     local frame = _G.CharacterFrame
     if not (frame and art) then return end
     local now = signature()
     if now == drawn and not force then return end
-    -- Ein anderes Theme: Blizzards Stand zurueck, dann neu (Schriften ohne Theme-Schrift ...).
+    -- A different theme: back to Blizzard's state, then anew (fonts without a theme font ...).
     if now ~= drawn then restore() end
     drawn = now
     if now == "off" then return end
@@ -197,8 +196,8 @@ function CharacterSkin.SetEnabled(on)
     CharacterSkin.Apply()
 end
 
--- Reiter: Blizzard setzt die Titelfarbe nach dem Zeigen (RefreshDisplay),
--- darum einen Takt spaeter.
+-- Tabs: Blizzard sets the title colour after showing (RefreshDisplay),
+-- hence one frame later.
 local function later() C_Timer.After(0, function() CharacterSkin.Apply(true) end) end
 
 local function hookSubframes()
@@ -218,7 +217,7 @@ local function hookStatRows()
     ScrollUtil.AddInitializedFrameCallback(box, function(_, row) skinStatRow(row) end, CharacterSkin, true)
 end
 
--- Beim Login: eigene Teile anlegen (nicht erst im Kampf) und einhaengen.
+-- At login: create our own parts (not only once in combat) and hook in.
 function CharacterSkin.Setup()
     local frame = _G.CharacterFrame
     if not frame or art then return end
@@ -236,10 +235,10 @@ function CharacterSkin.Setup()
     CharacterSkin.Apply(true)
 end
 
--- Fuer die Tests: die eigene Kunst und die Trennlinie.
+-- For the tests: our own art and the divider.
 function CharacterSkin.Parts() return art, divider end
 
 ns.On("PLAYER_LOGIN", CharacterSkin.Setup)
--- Waehrung und Statistik koennen spaeter laden.
+-- Currency and statistics can load later.
 ns.On("ADDON_LOADED", function() if art then hookSubframes() end end)
 ns.Settings.OnChange(function() CharacterSkin.Apply() end)

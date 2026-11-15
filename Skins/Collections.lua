@@ -1,29 +1,29 @@
 --[[---------------------------------------------------------------------------
-Skins/Collections.lua -- Blizzards Sammlungsfenster (CollectionsJournal aus
-Blizzard_Collections, Forever 1.60.1: Shared/Blizzard_Collections.xml,
-Reiter Camelot/Blizzard_CollectionsTabs.xml, Inhalte Mainline/ und
-Classic/Blizzard_PetCollection.xml) im zentralen Theme. Schalter
-"Blizzards Sammlungsfenster im Theme" (Optionen, Blizzards Fenster), kontoweit,
-Standard aus. Gebaut wie Skins/Character.lua (dort die Regeln).
+Skins/Collections.lua -- Blizzard's collections window (CollectionsJournal from
+Blizzard_Collections, Forever 1.60.1: Shared/Blizzard_Collections.xml, tabs
+Camelot/Blizzard_CollectionsTabs.xml, content Mainline/ and
+Classic/Blizzard_PetCollection.xml) in the central theme. Option
+"Theme Blizzard's collections window" (options, Blizzard's windows),
+account-wide, off by default. Built like Skins/Character.lua (the rules are
+there).
 
-Im Theme:
-  - Rahmen: NineSlice, Portraet, Felsenkachel (Bg) und Streifen unter dem
-    Titel aus, darunter Theme-Kachel, Ring, Titelstreifen samt Pitwall-Keil,
-    Ornamente (Skin.PaintArt).
-  - Die Innenrahmen der Reiter (Reittiere, Haustiere, Spielzeug, Erbstuecke,
-    Vorlagen): Blizzards Kachel, Rand und Schatten aus.
-  - Titel in der Theme-Schrift und im Akzent, die Bezeichnung der Zaehler
-    (Reittiere/Haustiere gesamt) in der Textschrift (Friz bleibt Blizzards).
-  - Schliessen: das gezeichnete Kreuz; Seitenreiter wie im Charakterfenster.
-Blizzard bleibt: Modelle samt Hintergrund, Listen, Spielzeug- und
-Vorlagenraster, Haustierkarte, Zaehlerkasten und Zahl, Suchfeld, Filter,
-die Reiter Gegenstaende/Sets der Vorlagen, Bildlaufleisten, alle
-Zauberknoepfe (geschuetzt).
+Themed:
+  - Frame: NineSlice, portrait, rock tile (Bg) and the streaks under the
+    title hidden; under them the theme tile, ring, title strip with Pitwall
+    wedge, ornaments (Skin.PaintArt).
+  - The tabs' insets (mounts, pets, toys, heirlooms, appearances): Blizzard's
+    tile, edge and shadow hidden.
+  - Title in the theme font and accent, the counters' labels (total mounts /
+    pets) in the text font (Friz stays Blizzard's).
+  - Close: the drawn cross; side tabs as in the character window.
+Blizzard's stays: models and their background, lists, toy and appearance
+grids, pet card, counter box and number, search box, filter, the
+appearances' items/sets tabs, scroll bars, all spell buttons (protected).
 
-Blizzard_Collections laedt bei Bedarf: eingehaengt beim ADDON_LOADED (oder
-beim Login, falls schon geladen). Faellt das in den Kampf, wartet das
-Anlegen auf PLAYER_REGEN_ENABLED: unter dem Fenster liegen geschuetzte
-Zauberknoepfe, eigene Rahmen entstehen darum nie im Kampf.
+Blizzard_Collections loads on demand: hooked on ADDON_LOADED (or at login
+if already loaded). If that falls into combat, creating the parts waits for
+PLAYER_REGEN_ENABLED: protected spell buttons sit under the window, so our
+own frames are never created in combat.
 -----------------------------------------------------------------------------]]
 
 local ADDON, ns = ...
@@ -32,16 +32,16 @@ local Themes, Skin = ns.Themes, ns.Skin
 local CollectionsSkin = {}
 ns.CollectionsSkin = CollectionsSkin
 
--- Blizzards Bg beginnt 21 unter der Oberkante (PortraitFrameTexturedBaseTemplate).
+-- Blizzard's Bg starts 21 below the top edge (PortraitFrameTexturedBaseTemplate).
 local TITLE_HEIGHT = 21
 local TAB_TINT = { 0.3, 0.3, 0.3, 1 }
 local BODY_FONT = "Friz Quadrata"
 local COLLECTIONS_ADDON = "Blizzard_Collections"
--- Kachel, Ecken und Schatten der CollectionsBackgroundTemplate (SharedCollectionTemplates.xml).
+-- Tile, corners and shadow of CollectionsBackgroundTemplate (SharedCollectionTemplates.xml).
 local INSET_ATLASES = { ["collections-background-tile"] = true, ["collections-background-corner"] = true,
     ["collections-background-shadow-large"] = true, ["collections-background-shadow-small"] = true }
--- Die Seiten der Reiter (CollectionsJournal_UpdateSelectedTab).
--- Die Zaehler (CollectionsCountTemplate) je Reiter.
+-- The tabs' pages (CollectionsJournal_UpdateSelectedTab).
+-- The counters (CollectionsCountTemplate) per tab.
 local COUNTERS = { MountJournal = "MountCount", PetJournal = "PetCount" }
 local SUBFRAMES = { "MountJournal", "PetJournal", "ToyBox", "HeirloomsJournal", "WardrobeCollectionFrame" }
 
@@ -59,7 +59,7 @@ local rec = Skin.NewRecord()
 local art
 local hooked = {}
 
--- ForeverThemesDB direkt gelesen: AccountDB() legte sie vor ADDON_LOADED an.
+-- ForeverThemesDB read directly: AccountDB() created it before ADDON_LOADED.
 function CollectionsSkin.Enabled()
     return _G.ForeverThemesDB ~= nil and _G.ForeverThemesDB.skinCollections == true
 end
@@ -68,7 +68,7 @@ local function active()
     return CollectionsSkin.Enabled() and Themes.Current() ~= Themes.CLASSIC
 end
 
--- Theme-Schriften haben nur lateinische Buchstaben (LibForeverThemes.LatinClient).
+-- Theme fonts only have Latin letters (LibForeverThemes.LatinClient).
 local function fonts()
     if not LibForeverThemes.LatinClient() then return nil, nil end
     local spec = Themes.Spec(Themes.Current())
@@ -82,7 +82,7 @@ local function titleStyle()
     return look.headerFlag or "OUTLINE", { c[1], c[2], c[3], 1 }
 end
 
--- Ein Innenrahmen (InsetFrameTemplate, CollectionsBackgroundTemplate).
+-- An inset (InsetFrameTemplate, CollectionsBackgroundTemplate).
 local function hideInset(inset)
     if type(inset) ~= "table" then return end
     Skin.Hide(rec, inset.Bg)
@@ -90,7 +90,7 @@ local function hideInset(inset)
     Skin.HideAtlases(rec, inset, INSET_ATLASES)
 end
 
--- Die Innenrahmen je Reiter; fehlt ein Reiter (andere Spielversion), bleibt er aus.
+-- The insets per tab; a missing tab (other game version) is skipped.
 local function insets()
     local g = _G
     local mount, pet, wardrobe = g.MountJournal or {}, g.PetJournal or {}, g.WardrobeCollectionFrame or {}
@@ -105,7 +105,7 @@ local function hideBlizzardArt(frame)
     Skin.Hide(rec, frame.PortraitContainer)
     Skin.Hide(rec, frame.Bg)
     Skin.Hide(rec, frame.TopTileStreaks)
-    -- Luecken (nil) in der Liste: pairs statt ipairs.
+    -- The list has gaps (nil): pairs, not ipairs.
     for _, inset in pairs(insets()) do hideInset(inset) end
 end
 
@@ -123,7 +123,7 @@ local function skinTexts(frame)
     local display, body = fonts()
     local flag, color = titleStyle()
     Skin.Font(rec, frame.TitleContainer and frame.TitleContainer.TitleText, display, flag, color)
-    -- Nur die Bezeichnung: die Zahl liest Media.ApplyText zurueck (GetText).
+    -- Only the label: Media.ApplyText would read the number back (GetText).
     for name, key in pairs(COUNTERS) do
         local count = _G[name] and _G[name][key]
         if type(count) == "table" then Skin.Font(rec, count.Label, body) end
@@ -136,14 +136,14 @@ local function restore()
     Skin.CloseButton(rec, _G.CollectionsJournal and _G.CollectionsJournal.CloseButton, nil)
 end
 
--- Was gerade gilt, damit eine Einstellungsmeldung nicht jedes Mal neu zeichnet.
+-- What is currently applied, so a settings notification does not repaint every time.
 local drawn
 local function signature()
     if not active() then return "off" end
     return Themes.Current() .. "|" .. tostring(Themes.Color())
 end
 
--- force: auch ohne Aenderung von Theme, Farbe und Schalter (Fenster gezeigt).
+-- force: even if theme, colour and option are unchanged (window shown).
 function CollectionsSkin.Apply(force)
     local frame = _G.CollectionsJournal
     if not (frame and art) then return end
@@ -165,10 +165,10 @@ function CollectionsSkin.SetEnabled(on)
     CollectionsSkin.Apply()
 end
 
--- Reiterwechsel setzt den Titel (SetTitle): einen Takt spaeter nachziehen.
+-- Switching tabs sets the title (SetTitle): refresh one frame later.
 local function later() C_Timer.After(0, function() CollectionsSkin.Apply(true) end) end
 
--- Eigene Teile anlegen und einhaengen; nur ausserhalb des Kampfes.
+-- Create our own parts and hook in; only out of combat.
 function CollectionsSkin.Setup()
     local frame = _G.CollectionsJournal
     if not frame or art then return end
@@ -185,7 +185,7 @@ function CollectionsSkin.Setup()
     CollectionsSkin.Apply(true)
 end
 
--- Fuer die Tests: die eigene Kunst.
+-- For the tests: our own art.
 function CollectionsSkin.Parts() return art end
 
 local loggedIn, waiting = false, false

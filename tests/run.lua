@@ -233,6 +233,93 @@ P.SetEnabled(false)
 check("off: own font back", designs.mine.font.asset, "Roboto Condensed Bold")
 check("off: a themed copy gets Platynator's own", designs.copy.font.asset, "Roboto Condensed Bold")
 
+section("Theme font: Forever Unit Frames' choice")
+-- Its Core/Themes.lua: Themes.Font() is its spec's font, the library's
+-- title font except Swiss', Console's and Pitwall's own.
+local UNIT_FRAMES_FONT = { WOOD = "Cinzel", TECH = "Space Grotesk", PARCHMENT = "IM Fell English SC",
+    RUNESTONE = "Marcellus", GLASS = "Morpheus", COMIC = "Bangers", FROST = "Julius Sans One", PIXEL = "VT323",
+    SWISS = "Inter Tight", CONSOLE = "IBM Plex Mono", PITWALL = "Titillium Web" }
+local differ = {}
+for id, want in pairs(UNIT_FRAMES_FONT) do
+    Themes.Switch(id)
+    if Lib.FontName(Themes.Font() or "-") ~= Lib.FontName(want) then differ[#differ + 1] = id end
+end
+table.sort(differ)
+check("every theme as Unit Frames", table.concat(differ, ","), "")
+Themes.Switch("CLASSIC")
+check("Classic: none", Themes.Font(), nil)
+Themes.Switch("COMIC")
+Fonts.SetEnabled(true)
+DAMAGE_TEXT_FONT = nil
+fire("PLAYER_LOGIN")
+runTimers()
+check("Comic: damage numbers in Bangers", DAMAGE_TEXT_FONT, ns.Media.FontPath("Bangers"))
+check("Comic: cast bar in Bangers", (bar.Text:GetFont()), ns.Media.FontPath("Bangers"))
+Fonts.SetEnabled(false)
+
+section("Platynator: taken over from Unit Frames")
+-- Unit Frames themed the designs under Pitwall (its older font name) and
+-- has not stood down yet.
+PLATYNATOR_CONFIG = { Profiles = { DEFAULT = { designs = {
+    Tank = { font = { asset = "Titillium Web" } },
+    _custom = { font = { asset = "Titillium Web" } },
+    New = { font = { asset = "Friz Quadrata TT" } },
+} } } }
+designs = PLATYNATOR_CONFIG.Profiles.DEFAULT.designs
+ForeverUnitFramesDB = { platynator = { font = "Titillium Web", snapshot = { DEFAULT = {
+    Tank = "Friz Quadrata TT", _custom = "Roboto Condensed Bold" } } } }
+ForeverThemesDB.platynator = nil
+Themes.Switch("COMIC")
+P.SetEnabled(true)
+check("on: Bangers", designs.Tank.font.asset, "Bangers")
+P.SetEnabled(false)
+check("off: Unit Frames' original back", designs.Tank.font.asset, "Friz Quadrata TT")
+check("off: its Platynator default back", designs._custom.font.asset, "Roboto Condensed Bold")
+check("off: a design it never themed keeps its own", designs.New.font.asset, "Friz Quadrata TT")
+ForeverUnitFramesDB = nil
+designs.Tank.font.asset = "Friz Quadrata TT"
+P.SetEnabled(true)
+designs.Tank.font.asset = "Friz Quadrata TT" -- another addon put it back at its login
+ForeverThemesDB.platynator = nil
+fire("PLAYER_LOGIN")
+check("login: not at once", designs.Tank.font.asset, "Friz Quadrata TT")
+runTimers()
+check("login: a moment later, after the others", designs.Tank.font.asset, "Bangers")
+check("login: the original remembered", ForeverThemesDB.platynator.snapshot.DEFAULT.Tank, "Friz Quadrata TT")
+P.SetEnabled(false)
+PLATYNATOR_CONFIG = nil
+
+section("First run: switches taken over once")
+function UnitFullName() return "Testchar", "Testrealm" end
+local keptDB = ForeverThemesDB
+ForeverThemesDB = {}
+ForeverUnitFramesDB = { active = { ["Testchar-Testrealm"] = "Healer" }, profiles = {
+    Default = { general = {} },
+    Healer = { general = { themeBlizzardFonts = true, themePlatynatorFont = true } } } }
+InfoPanelDB = { skinTalents = true, skinCollections = true, skinCharacter = false, blizzardFonts = {} }
+ns.Migrate.Run()
+check("Unit Frames' Blizzard texts", ForeverThemesDB.blizzardTexts, true)
+check("Unit Frames' Platynator", ForeverThemesDB.platynatorFont, true)
+check("InfoPanel's skin: talents", ForeverThemesDB.skinTalents, true)
+check("InfoPanel's skin: collections", ForeverThemesDB.skinCollections, true)
+check("a skin it had off stays off", ForeverThemesDB.skinCharacter, nil)
+check("marked done", ForeverThemesDB.migrated, true)
+ForeverThemesDB.blizzardTexts = nil
+ns.Migrate.Run()
+check("only once: switched off stays off", ForeverThemesDB.blizzardTexts, nil)
+ForeverThemesDB = {}
+ForeverUnitFramesDB.active = {}
+InfoPanelDB = { platynator = { theme = "WOOD" }, blizzardFonts = { theme = "CLASSIC" } }
+ns.Migrate.Run()
+check("another character on Default: no Blizzard texts", ForeverThemesDB.blizzardTexts, nil)
+check("InfoPanel's Platynator theme", ForeverThemesDB.platynatorFont, true)
+ForeverThemesDB = { theme = "WOOD" }
+ForeverUnitFramesDB, InfoPanelDB = nil, nil
+ns.Migrate.Run()
+check("neither addon: nothing on", ForeverThemesDB.blizzardTexts, nil)
+ForeverThemesDB = keptDB
+Themes.Switch("PITWALL")
+
 section("Options, slash, minimap button")
 local spec = ns.OptionsSpec()
 local tabs, addonRows = 0, 0
@@ -254,6 +341,39 @@ for _, row in ipairs(spec) do
         check("Quest Log row: follow switches it", ql.theme, "PITWALL")
     end
 end
+
+section("Theme menu for other addons (Data Bar's Theme element)")
+-- Blizzard_Menu recorded: the owner and what the menu holds.
+local function recorder(log)
+    local node = {}
+    function node:CreateTitle(text) log[#log + 1] = "title:" .. text; return node end
+    function node:CreateRadio(text, isSet, set)
+        log[#log + 1] = (isSet() and "*" or "") .. text
+        node.sets = node.sets or {}
+        node.sets[text] = set
+        return node
+    end
+    function node:CreateButton(text, fn) log[#log + 1] = "button:" .. text; node.click = fn or node.click; return node end
+    function node:CreateDivider() end
+    return node
+end
+local owner, log, root = nil, {}, nil
+MenuUtil = { CreateContextMenu = function(o, gen) owner = o; root = recorder(log); gen(o, root) end }
+local element = CreateFrame("Button", "SomeDataBarElement")
+Themes.Switch("PITWALL")
+Lib.Hub().OpenMenu(element)
+check("owned by the frame given", owner, element)
+check("titled", log[1], "title:" .. ns.L.ADDON_NAME)
+local marked = 0
+for _, line in ipairs(log) do if line:sub(1, 1) == "*" then marked = marked + 1 end end
+check("the central theme and its colour marked", marked, 2)
+check("a theme per id, then the colours", #log >= 1 + #Themes.IDS + #Themes.Colors("PITWALL"), true)
+root.sets[ns.ThemeName("FROST")]()
+check("a theme picked switches the central one", Themes.Current(), "FROST")
+Lib.Hub().OpenMenu(nil)
+check("no anchor: owned by UIParent", owner, UIParent)
+MenuUtil = nil
+Themes.Switch("PITWALL")
 
 section("Media files exist")
 local function exists(path)

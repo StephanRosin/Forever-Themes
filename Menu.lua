@@ -32,11 +32,12 @@ function Menu.Fill(root)
     root:CreateButton(L.MENU_OPTIONS, function() ns.Window.Open() end)
 end
 
--- At anchor (a frame); without Blizzard_Menu the options open instead.
+-- Owned by anchor (any frame; the menu opens at the cursor); without
+-- Blizzard_Menu the options open instead.
 function Menu.Open(anchor)
     if not (MenuUtil and MenuUtil.CreateContextMenu) then
         ns.Window.Open()
         return
     end
-    MenuUtil.CreateContextMenu(anchor, function(_, root) Menu.Fill(root) end)
+    MenuUtil.CreateContextMenu(anchor or UIParent, function(_, root) Menu.Fill(root) end)
 end

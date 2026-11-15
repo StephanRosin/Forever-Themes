@@ -1,10 +1,10 @@
--- Blizzards Berufsfenster im Theme (Skins/Skin.lua, Skins/Professions.lua).
--- Eigene Datei, damit wowmock.lua unberuehrt bleibt: das Fenster ist hier
--- nachgestellt, so weit das Addon es anfasst (Camelot/Blizzard_ProfessionsFrame.xml).
+-- Blizzard's professions frame in the theme (Skins/Skin.lua, Skins/Professions.lua).
+-- Own file so wowmock.lua stays untouched: the frame is rebuilt here
+-- as far as the addon touches it (Camelot/Blizzard_ProfessionsFrame.xml).
 local M = dofile("wowmock.lua")
 
--- Blizzards Rahmen: zaehlt jede Aenderung an Anordnung und Sichtbarkeit
--- (verboten: nur Texturen, Schriften, Deckkraft).
+-- Blizzard's frames: counts every change to layout and visibility
+-- (forbidden: only textures, fonts, alpha).
 local layoutCalls = 0
 local function blizzard(name)
     local w = M.newWidget(name)
@@ -43,7 +43,7 @@ end
 local pass, fail = 0, 0
 local function check(label, got, want)
     if got == want then pass = pass + 1; print(("  OK   %-52s -> %s"):format(label, tostring(got)))
-    else fail = fail + 1; print(("  FAIL %-52s -> %s   (erwartet: %s)"):format(label, tostring(got), tostring(want))) end
+    else fail = fail + 1; print(("  FAIL %-52s -> %s   (want: %s)"):format(label, tostring(got), tostring(want))) end
 end
 local function list(t) return t and table.concat(t, ",") or "nil" end
 local function alpha(region) return region:GetAlpha() end
@@ -51,12 +51,12 @@ local function alpha(region) return region:GetAlpha() end
 local Themes, Skin, Media = ns.Themes, ns.ProfessionsSkin, ns.Media
 local FRIZ = "Fonts\\FRIZQT__.TTF"
 
-print("\nLaedt bei Bedarf:")
+print("\nLoad on demand:")
 fire("PLAYER_LOGIN")
 local panel = dofile("reference.lua")(ns)
-check("Login ohne Fenster: nichts angelegt", Skin.Parts(), nil)
+check("login without frame: nothing created", Skin.Parts(), nil)
 
--- Blizzard_Professions laedt: das Fenster entsteht erst jetzt.
+-- Blizzard_Professions loads: only now does the frame exist.
 local frame = blizzard("ProfessionsFrame")
 frame._w, frame._h = 673, 594
 frame.NineSlice = blizzard()
@@ -105,7 +105,7 @@ local card, cooking = newCard(), newCard()
 frame.BookPage = blizzard()
 frame.BookPage.ProfessionsContentFrame = { PrimaryProfession1 = card, SecondaryProfession1 = cooking }
 
--- Eigene Texturen auf einer Karte (alles ausser Blizzards Background).
+-- Own textures on a card (everything except Blizzard's Background).
 local function ownTextures(c)
     local list = {}
     for _, t in ipairs(c._textures or {}) do list[#list + 1] = t end
@@ -114,65 +114,66 @@ end
 
 M.combat = true
 fire("ADDON_LOADED", "Blizzard_Professions")
-check("im Kampf geladen: wartet", Skin.Parts(), nil)
+check("loaded in combat: waits", Skin.Parts(), nil)
 M.combat = false
 fire("PLAYER_REGEN_ENABLED")
 local art = Skin.Parts()
-check("nach dem Kampf angelegt", art ~= nil, true)
+check("created after combat", art ~= nil, true)
 local title = frame.TitleContainer.TitleText
 
-print("\nSchalter aus (Standard):")
-check("Standard aus", Skin.Enabled(), false)
+print("\nSwitch off (default):")
+check("off by default", Skin.Enabled(), false)
 Themes.Switch("WOOD")
-check("Wood ohne Schalter: NineSlice bleibt", alpha(frame.NineSlice), 1)
-check("Wood ohne Schalter: keine Kachel", art.back:IsShown(), false)
-check("Wood ohne Schalter: Titel in Friz", (title:GetFont()), FRIZ)
+check("Wood without switch: NineSlice stays", alpha(frame.NineSlice), 1)
+check("Wood without switch: no tile", art.back:IsShown(), false)
+check("Wood without switch: title in Friz", (title:GetFont()), FRIZ)
 
-print("\nSchalter an:")
+print("\nSwitch on:")
 layoutCalls = 0
 Skin.SetEnabled(true)
-check("gespeichert kontoweit", ForeverThemesDB.skinProfessions, true)
-check("Kachel sichtbar", art.back:IsShown(), true)
-check("NineSlice aus", alpha(frame.NineSlice), 0)
-check("Portraet aus", alpha(frame.PortraitContainer), 0)
-check("Blizzards Hintergrund aus", alpha(frame.Bg), 0)
-check("Flaeche der Rezeptseite aus", alpha(pageBg), 0)
-check("andere Texturen der Seite bleiben", alpha(otherTex), 1)
-check("Schliessen: Blizzards Bild aus", alpha(closeTextures[1]), 0)
-check("Titel: Cinzel", (title:GetFont()), Media.FontPath("Cinzel"))
-check("Berufsname: Cinzel", (card.ProfessionName:GetFont()), Media.FontPath("Cinzel"))
+check("saved account-wide", ForeverThemesDB.skinProfessions, true)
+check("tile visible", art.back:IsShown(), true)
+check("NineSlice off", alpha(frame.NineSlice), 0)
+check("portrait off", alpha(frame.PortraitContainer), 0)
+check("Blizzard's background off", alpha(frame.Bg), 0)
+check("recipe page background off", alpha(pageBg), 0)
+check("other page textures stay", alpha(otherTex), 1)
+check("close: Blizzard's art off", alpha(closeTextures[1]), 0)
+check("title: Cinzel", (title:GetFont()), Media.FontPath("Cinzel"))
+check("profession name: Cinzel", (card.ProfessionName:GetFont()), Media.FontPath("Cinzel"))
 local accentNow = Themes.Accent(Themes.SPECS.WOOD.look.headerColor or ns.Settings.DEFAULTS.headerColor)
-check("Berufsname im Akzent", list(card.ProfessionName._textColor), list({ accentNow[1], accentNow[2], accentNow[3], 1 }))
-check("fehlender Beruf: Ueberschrift Cinzel", (cooking.missingHeader:GetFont()), Media.FontPath("Cinzel"))
-check("Beschreibung: Friz bleibt", (card.missingText:GetFont()), FRIZ)
-check("Rangzahl unberuehrt", (card.StatusBar.Rank.Text:GetFont()), FRIZ)
-check("Kartenbild aus", alpha(card.Background), 0)
-check("Kartenbild der Zweitberufe aus", alpha(cooking.Background), 0)
+check("profession name in the accent", list(card.ProfessionName._textColor),
+    list({ accentNow[1], accentNow[2], accentNow[3], 1 }))
+check("missing profession: heading Cinzel", (cooking.missingHeader:GetFont()), Media.FontPath("Cinzel"))
+check("description: Friz stays", (card.missingText:GetFont()), FRIZ)
+check("rank number untouched", (card.StatusBar.Rank.Text:GetFont()), FRIZ)
+check("card art off", alpha(card.Background), 0)
+check("secondary profession card art off", alpha(cooking.Background), 0)
 local surface = ownTextures(card)
-check("eigene Kartenflaeche und Ring (5 Texturen)", #surface, 5)
+check("own card surface and ring (5 textures)", #surface, 5)
 local shown = 0
 for _, t in ipairs(surface) do if t:IsShown() then shown = shown + 1 end end
-check("Kartenflaeche sichtbar", shown, 5)
+check("card surface visible", shown, 5)
 local woodLine = Themes.SPECS.WOOD.art.line
-check("Ring in der Linienfarbe", list(surface[2]._colorTexture), list(woodLine))
-check("Rangleiste: Rahmen in der Linienfarbe", list(card.StatusBar.Border._vertex),
+check("ring in the line colour", list(surface[2]._colorTexture), list(woodLine))
+check("rank bar: border in the line colour", list(card.StatusBar.Border._vertex),
     list({ woodLine[1], woodLine[2], woodLine[3], 1 }))
-check("Rangleiste: Rahmen entsaettigt", card.StatusBar.Border:IsDesaturated(), true)
-check("Rangleiste: Fuellung unberuehrt", alpha(card.StatusBar.Fill), 1)
-check("Rangleiste der Rezeptseite getoent", pageRankBar.Border:IsDesaturated(), true)
-check("Rezeptliste: Hintergrund aus", alpha(recipeList.Background), 0)
-check("Formular: Berufsbild aus", alpha(form.Background), 0)
-check("Formular: kleiner Hintergrund aus", alpha(form.MinimalBackground), 0)
-check("Formular: NineSlice aus", alpha(form.NineSlice), 0)
+check("rank bar: border desaturated", card.StatusBar.Border:IsDesaturated(), true)
+check("rank bar: fill untouched", alpha(card.StatusBar.Fill), 1)
+check("recipe page rank bar tinted", pageRankBar.Border:IsDesaturated(), true)
+check("recipe list: background off", alpha(recipeList.Background), 0)
+check("form: profession art off", alpha(form.Background), 0)
+check("form: minimal background off", alpha(form.MinimalBackground), 0)
+check("form: NineSlice off", alpha(form.NineSlice), 0)
 local icon = Themes.IconColor()
 for i, tab in ipairs({ frame.ProfessionsOverviewTab, frame.rightProfessionTabs[2] }) do
-    check("Reiter " .. i .. ": Auswahl in der Symbolfarbe", list(tab.SelectedTexture._vertex),
+    check("tab " .. i .. ": selection in the icon colour", list(tab.SelectedTexture._vertex),
         list({ icon[1], icon[2], icon[3], 1 }))
-    check("Reiter " .. i .. ": entsaettigt", tab.SelectedTexture:IsDesaturated(), true)
+    check("tab " .. i .. ": desaturated", tab.SelectedTexture:IsDesaturated(), true)
 end
-check("keine Anordnung an Blizzards Rahmen", layoutCalls, 0)
+check("no layout on Blizzard's frames", layoutCalls, 0)
 
-print("\nWie das Panel, je Theme und Farbe:")
+print("\nLike the panel, per theme and colour:")
 local mismatch = {}
 for _, id in ipairs(Themes.IDS) do
     if id ~= Themes.CLASSIC then
@@ -181,70 +182,73 @@ for _, id in ipairs(Themes.IDS) do
             Themes.SetColor(color, id)
             panel.Paint()
             local where = id .. "/" .. color
-            if art.back._texture ~= panel.bg._texture then mismatch[#mismatch + 1] = where .. " Textur" end
-            if list(art.back._vertex) ~= list(panel.bg._vertex) then mismatch[#mismatch + 1] = where .. " Toenung" end
+            if art.back._texture ~= panel.bg._texture then mismatch[#mismatch + 1] = where .. " texture" end
+            if list(art.back._vertex) ~= list(panel.bg._vertex) then mismatch[#mismatch + 1] = where .. " tint" end
             local mine, theirs = ns.Border.Pieces(art.over)[1], ns.Border.Pieces(panel)[1]
-            if list(mine._vertex) ~= list(theirs._vertex) then mismatch[#mismatch + 1] = where .. " Rand" end
+            if list(mine._vertex) ~= list(theirs._vertex) then mismatch[#mismatch + 1] = where .. " border" end
         end
     end
 end
-check("Kachel, Toenung und Rand wie das InfoPanel", table.concat(mismatch, "; "), "")
+check("tile, tint and border like the InfoPanel", table.concat(mismatch, "; "), "")
 
-print("\nThemenwechsel:")
+print("\nTheme switch:")
 Themes.SetColor("ORANGE", "PITWALL")
 Themes.Switch("PITWALL")
-check("Pitwall: Keil", art.wedge:IsShown(), true)
-check("Pitwall: Keil in der Farbe", list(art.wedge._vertex), list(Themes.Wedge({ 0.882, 0.024, 0, 1 })))
-check("Pitwall: Titel Titillium", (title:GetFont()), Media.FontPath("Titillium Web Bold Italic"))
-check("Pitwall: Berufsname Titillium", (card.ProfessionName:GetFont()), Media.FontPath("Titillium Web Bold Italic"))
-check("Pitwall: Spezialisierung in der Textschrift", (card.specialization:GetFont()), Media.FontPath("Titillium Web SemiBold"))
-check("Pitwall: Beschreibung in der Textschrift", (card.missingText:GetFont()), Media.FontPath("Titillium Web SemiBold"))
+check("Pitwall: wedge", art.wedge:IsShown(), true)
+check("Pitwall: wedge in the colour", list(art.wedge._vertex), list(Themes.Wedge({ 0.882, 0.024, 0, 1 })))
+check("Pitwall: title Titillium", (title:GetFont()), Media.FontPath("Titillium Web Bold Italic"))
+check("Pitwall: profession name Titillium", (card.ProfessionName:GetFont()),
+    Media.FontPath("Titillium Web Bold Italic"))
+check("Pitwall: specialization in the body font", (card.specialization:GetFont()),
+    Media.FontPath("Titillium Web SemiBold"))
+check("Pitwall: description in the body font", (card.missingText:GetFont()), Media.FontPath("Titillium Web SemiBold"))
 Themes.Switch("FROST")
-check("Frost: Titel Julius", (title:GetFont()), Media.FontPath("Julius Sans One"))
-check("Frost: kein Keil", art.wedge:IsShown(), false)
-check("Frost: dunkle Flaeche", art.shade:IsShown(), true)
--- Blizzard zeigt das Fenster wieder: alles nachgezogen.
+check("Frost: title Julius", (title:GetFont()), Media.FontPath("Julius Sans One"))
+check("Frost: no wedge", art.wedge:IsShown(), false)
+check("Frost: dark shade", art.shade:IsShown(), true)
+-- Blizzard shows the frame again: everything reapplied.
 frame.NineSlice:SetAlpha(1)
 frame._scriptHooks.OnShow()
-check("Zeigen: NineSlice wieder aus", alpha(frame.NineSlice), 0)
+check("showing: NineSlice off again", alpha(frame.NineSlice), 0)
 
-print("\nKlassisch stellt alles her:")
+print("\nClassic restores everything:")
 Themes.Switch("CLASSIC")
-check("NineSlice zurueck", alpha(frame.NineSlice), 1)
-check("Hintergrund zurueck", alpha(frame.Bg), 1)
-check("Flaeche der Rezeptseite zurueck", alpha(pageBg), 1)
-check("Kachel aus", art.back:IsShown(), false)
-check("Keil aus", art.wedge:IsShown(), false)
-check("Titel in Friz", (title:GetFont()), FRIZ)
-check("Berufsname in Friz", (card.ProfessionName:GetFont()), FRIZ)
-check("Kartenbild zurueck", alpha(card.Background), 1)
-check("Berufsbild zurueck", alpha(form.Background), 1)
-check("Kartenflaeche aus", surface[1]:IsShown(), false)
-check("Rangleiste: Rahmen ungetoent", list(card.StatusBar.Border._vertex), "1,1,1,1")
-check("Reiter nicht mehr entsaettigt", frame.ProfessionsOverviewTab.SelectedTexture:IsDesaturated(), false)
-check("Reiter ungetoent", list(frame.ProfessionsOverviewTab.SelectedTexture._vertex), "1,1,1,1")
-check("Schliessen: Blizzards Bild zurueck", alpha(closeTextures[1]), 1)
-check("Ring weg", ns.Border.Pieces(art.over)[1]:IsShown(), false)
+check("NineSlice back", alpha(frame.NineSlice), 1)
+check("background back", alpha(frame.Bg), 1)
+check("recipe page background back", alpha(pageBg), 1)
+check("tile off", art.back:IsShown(), false)
+check("wedge off", art.wedge:IsShown(), false)
+check("title in Friz", (title:GetFont()), FRIZ)
+check("profession name in Friz", (card.ProfessionName:GetFont()), FRIZ)
+check("card art back", alpha(card.Background), 1)
+check("profession art back", alpha(form.Background), 1)
+check("card surface off", surface[1]:IsShown(), false)
+check("rank bar: border untinted", list(card.StatusBar.Border._vertex), "1,1,1,1")
+check("tab no longer desaturated", frame.ProfessionsOverviewTab.SelectedTexture:IsDesaturated(), false)
+check("tab untinted", list(frame.ProfessionsOverviewTab.SelectedTexture._vertex), "1,1,1,1")
+check("close: Blizzard's art back", alpha(closeTextures[1]), 1)
+check("ring gone", ns.Border.Pieces(art.over)[1]:IsShown(), false)
 
-print("\nSchalter aus unter einem Theme:")
+print("\nSwitch off under a theme:")
 Themes.Switch("TECH")
-check("Tech: Titel Space Grotesk", (title:GetFont()), Media.FontPath("Space Grotesk"))
+check("Tech: title Space Grotesk", (title:GetFont()), Media.FontPath("Space Grotesk"))
 Skin.SetEnabled(false)
-check("aus: gespeichert ohne Eintrag", ForeverThemesDB.skinProfessions, nil)
-check("aus: NineSlice zurueck", alpha(frame.NineSlice), 1)
-check("aus: Titel in Friz", (title:GetFont()), FRIZ)
-check("aus: Kachel aus", art.back:IsShown(), false)
+check("off: saved without entry", ForeverThemesDB.skinProfessions, nil)
+check("off: NineSlice back", alpha(frame.NineSlice), 1)
+check("off: title in Friz", (title:GetFont()), FRIZ)
+check("off: tile off", art.back:IsShown(), false)
 frame._scriptHooks.OnShow()
-check("aus: Zeigen aendert nichts", alpha(frame.NineSlice), 1)
+check("off: showing changes nothing", alpha(frame.NineSlice), 1)
 
-print("\nFallen:")
+print("\nTraps:")
 local h = assert(io.open(ADDONDIR .. "/Skins/Professions.lua")); local src = h:read("*a"); h:close()
--- Kommentare zaehlen nicht: sie erklaeren gerade, warum es fehlt.
+-- Comments do not count: they explain why it is missing.
 src = src:gsub("%-%-%[%[.-%]%]", ""):gsub("%-%-[^\n]*", "")
-check("kein hooksecurefunc", src:find("hooksecurefunc") == nil, true)
-check("Reiter: keine Skripte angefasst", src:find("SetScript") == nil and src:find("OnClick") == nil, true)
-check("Schalter in allen Sprachen", ns.Locales.deDE.OPT_SKIN_PROFESSIONS ~= nil and ns.Locales.esES.OPT_SKIN_PROFESSIONS ~= nil
+check("no hooksecurefunc", src:find("hooksecurefunc") == nil, true)
+check("tabs: no scripts touched", src:find("SetScript") == nil and src:find("OnClick") == nil, true)
+check("switch in all languages",
+    ns.Locales.deDE.OPT_SKIN_PROFESSIONS ~= nil and ns.Locales.esES.OPT_SKIN_PROFESSIONS ~= nil
     and ns.Locales.frFR.OPT_SKIN_PROFESSIONS ~= nil and ns.Locales.enUS.OPT_SKIN_PROFESSIONS ~= nil, true)
 
-print(("\n%d bestanden, %d fehlgeschlagen"):format(pass, fail))
+print(("\n%d passed, %d failed"):format(pass, fail))
 os.exit(fail == 0 and 0 or 1)

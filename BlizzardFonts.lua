@@ -2,8 +2,8 @@ local ADDON, ns = ...
 
 -- "Theme font for Blizzard texts" (ForeverThemesDB.blizzardTexts, from Forever
 -- Unit Frames' Core/BlizzardFonts.lua): some of Blizzard's texts take the
--- central theme's font for other addons' texts (Themes.Font: the body font,
--- or the title font where that is Friz), each keeping its size and outline.
+-- central theme's font (Themes.Font, as Unit Frames chose it), each keeping
+-- its size and outline.
 -- Only these, one FontString each (their font objects, GameFontNormalSmall
 -- or NumberFontNormal, also carry tooltips, quest and chat text): the
 -- player's cast bar (Text, CastTimeText), the duration and count of the buff

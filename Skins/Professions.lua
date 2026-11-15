@@ -1,42 +1,41 @@
 --[[---------------------------------------------------------------------------
-Skins/Professions.lua -- Blizzards Berufsfenster (ProfessionsFrame, Forever
-1.60.1: Blizzard_Professions/Camelot/Blizzard_ProfessionsFrame.xml, laedt bei
-Bedarf) im zentralen Theme. Schalter "Blizzards Berufsfenster im Theme"
-(Optionen, Blizzards Fenster), kontoweit, Standard aus. Gebaut wie
-Skins/Character.lua. Forever kennt weder TradeSkillFrame noch CraftFrame, und
-das Berufsbuch ist kein eigenes Fenster: es ist die Seite BookPage im
-ProfessionsFrame (Blizzard_ProfessionsBook.xml laedt unter Camelot nicht).
+Skins/Professions.lua -- Blizzard's professions window (ProfessionsFrame, Forever
+1.60.1: Blizzard_Professions/Camelot/Blizzard_ProfessionsFrame.xml, loads on
+demand) in the central theme. Option "Theme Blizzard's professions window"
+(options, Blizzard's windows), account-wide, off by default. Built like
+Skins/Character.lua. Forever has neither TradeSkillFrame nor CraftFrame, and
+the profession book is no window of its own: it is the BookPage page of
+ProfessionsFrame (Blizzard_ProfessionsBook.xml does not load under Camelot).
 
-Im Theme:
-  - Rahmen: NineSlice, Portraet und Blizzards Hintergrund (Bg) aus, dazu die
-    Flaeche hinter der Rezeptseite; darunter Theme-Kachel, Ring,
-    Titelstreifen (Glanz, Linie, Band, Pitwall-Keil), Ornamente (Skin.PaintArt).
-  - Titel in der Theme-Schrift und Kopfzeilenfarbe (Akzent).
-  - Berufsbuch: Kartenbild (Rahmen, Berufsillustration, braune Flaeche --
-    alles eine Textur, Background) aus; dafuer eine leichte dunkle Flaeche
-    mit duennem Ring in der Linienfarbe des Themes. Berufsnamen in
-    Theme-Schrift und Akzent, Spezialisierung und Beschreibungen in der
-    Textschrift (Friz bleibt).
-  - Rezeptseite: Hintergruende von Rezeptliste und Formular (samt
-    Berufsbild) aus.
-  - Rangleisten (Buch und Rezeptseite): Blizzards Rahmen entsaettigt in der
-    Linienfarbe; Fuellung, Zahl und Text bleiben Blizzards.
-  - Schliessen: das gezeichnete Kreuz in der Symbolfarbe.
-  - Seitenreiter rechts (Uebersicht und je Beruf): grau getoent, Auswahl und
-    Hover in der Symbolfarbe. Nur Toenung: ihre Klicks wirken Berufszauber
-    (in Forever beim Zeigen sogar alle), daran bleibt alles Blizzards.
-Blizzard bleibt: Eintraege der Rezeptliste, Inhalt des Formulars, Fuellung
-und Zahl der Rangleisten, Suche, Filter, Zauberknoepfe des Berufsbuchs samt
-Rahmen, Bildlaufleisten.
+Themed:
+  - Frame: NineSlice, portrait and Blizzard's background (Bg) hidden, plus
+    the fill behind the recipe page; under them the theme tile, ring, title
+    strip (gloss, line, band, Pitwall wedge), ornaments (Skin.PaintArt).
+  - Title in the theme font and header colour (accent).
+  - Profession book: card image (frame, profession art, brown fill -- all
+    one texture, Background) hidden; instead a light dark fill with a thin
+    ring in the theme's line colour. Profession names in the theme font and
+    accent, specialization and descriptions in the text font (Friz stays).
+  - Recipe page: backgrounds of recipe list and form (with the profession
+    image) hidden.
+  - Rank bars (book and recipe page): Blizzard's frame desaturated in the
+    line colour; fill, number and text stay Blizzard's.
+  - Close: the drawn cross in the icon colour.
+  - Side tabs on the right (overview and one per profession): tinted grey,
+    selection and hover in the icon colour. Tint only: their clicks cast
+    profession spells (in Forever even all of them on show), so all of that
+    stays Blizzard's.
+Blizzard's stays: recipe list entries, form content, rank bar fill and
+number, search, filter, the profession book's spell buttons with their
+frames, scroll bars.
 
-Klassisch oder Schalter aus: alles wie von Blizzard (Skin.Restore).
+Classic or option off: everything as Blizzard built it (Skin.Restore).
 
-Eigene Teile entstehen, sobald das Fenster geladen ist (nach dem Login,
-ADDON_LOADED oder schon geladen). Die Zauberknoepfe des Berufsbuchs sind
-geschuetzt (SecureFrameTemplate): laedt das Fenster im Kampf, warten die
-eigenen Teile auf PLAYER_REGEN_ENABLED. Nachgezogen wird bei jedem Zeigen und
-wenn sich Theme, Farbe oder Schalter aendern -- nur Texturen, Schriften,
-Deckkraft.
+Our own parts are created as soon as the window has loaded (after login,
+ADDON_LOADED or already loaded). The profession book's spell buttons are
+protected (SecureFrameTemplate): if the window loads in combat, our parts
+wait for PLAYER_REGEN_ENABLED. Refreshed on every show and when theme,
+colour or option change -- only textures, fonts, alpha.
 -----------------------------------------------------------------------------]]
 
 local ADDON, ns = ...
@@ -45,16 +44,16 @@ local Themes, Skin = ns.Themes, ns.Skin
 local ProfessionsSkin = {}
 ns.ProfessionsSkin = ProfessionsSkin
 
--- Bg und die Rezeptseite beginnen 21 unter der Oberkante.
+-- Bg and the recipe page start 21 below the top edge.
 local TITLE_HEIGHT = 21
 local TAB_TINT = { 0.3, 0.3, 0.3, 1 }
 local BODY_FONT = "Friz Quadrata"
--- Blizzards Flaeche hinter Rezeptliste und Formular (Camelot/Blizzard_ProfessionsFrame.xml).
+-- Blizzard's fill behind recipe list and form (Camelot/Blizzard_ProfessionsFrame.xml).
 local PAGE_ATLASES = { ["Profession-Background-Template2"] = true }
--- Die Karten des Berufsbuchs (Camelot/Blizzard_ProfessionsBookTemplates.xml).
+-- The profession book's cards (Camelot/Blizzard_ProfessionsBookTemplates.xml).
 local BOOK_CARDS = { "PrimaryProfession1", "PrimaryProfession2", "SecondaryProfession1", "SecondaryProfession2",
     "SecondaryProfession3" }
--- Eigene Kartenflaeche: leicht abgedunkelt, damit die Karten unterscheidbar bleiben.
+-- Our own card fill: slightly darkened so the cards stay distinguishable.
 local CARD_FILL = { 0, 0, 0, 0.25 }
 local RIM_WIDTH = 1
 
@@ -73,7 +72,7 @@ local art
 local cardSurfaces = {}
 local loggedIn = false
 
--- ForeverThemesDB direkt gelesen: AccountDB() legte sie vor ADDON_LOADED an.
+-- ForeverThemesDB read directly: AccountDB() created it before ADDON_LOADED.
 function ProfessionsSkin.Enabled()
     return _G.ForeverThemesDB ~= nil and _G.ForeverThemesDB.skinProfessions == true
 end
@@ -82,7 +81,7 @@ local function active()
     return ProfessionsSkin.Enabled() and Themes.Current() ~= Themes.CLASSIC
 end
 
--- Theme-Schriften haben nur lateinische Buchstaben (LibForeverThemes.LatinClient).
+-- Theme fonts only have Latin letters (LibForeverThemes.LatinClient).
 local function fonts()
     if not LibForeverThemes.LatinClient() then return nil, nil end
     local spec = Themes.Spec(Themes.Current())
@@ -96,7 +95,7 @@ local function titleStyle()
     return look.headerFlag or "OUTLINE", { c[1], c[2], c[3], 1 }
 end
 
--- fn(card) fuer jede Karte des Berufsbuchs.
+-- fn(card) for every card of the profession book.
 local function eachCard(frame, fn)
     local content = frame.BookPage and frame.BookPage.ProfessionsContentFrame
     for _, key in ipairs(BOOK_CARDS) do
@@ -105,7 +104,7 @@ local function eachCard(frame, fn)
     end
 end
 
--- Flaeche und Ring einer Karte (eigene Texturen, versteckt); beim Setup, nie im Kampf.
+-- A card's fill and ring (our own textures, hidden); at setup, never in combat.
 local function newCardSurface(card)
     local surface = { fill = Skin.OwnTexture(card, "BACKGROUND", -8) }
     surface.fill:SetAllPoints(card)
@@ -157,7 +156,7 @@ local function hideBlizzardArt(frame)
     eachCard(frame, function(card) Skin.Hide(rec, card.Background) end)
 end
 
--- Rahmen der Rangleisten in der Linienfarbe, voll deckend (sonst verschwindet er).
+-- Rank bar frames in the line colour, fully opaque (else they vanish).
 local function skinRankBars(frame, line)
     local c = { line[1], line[2], line[3], 1 }
     local page = frame.CraftingPage
@@ -167,7 +166,7 @@ local function skinRankBars(frame, line)
     end)
 end
 
--- Uebersicht und die Berufsreiter (rightProfessionTabs, LargeSideTabButtonTemplate).
+-- Overview and the profession tabs (rightProfessionTabs, LargeSideTabButtonTemplate).
 local function skinTabs(frame, accent)
     local tabs = { frame.ProfessionsOverviewTab }
     for _, tab in ipairs(frame.rightProfessionTabs or {}) do tabs[#tabs + 1] = tab end
@@ -184,7 +183,7 @@ local function skinTexts(frame)
     local flag, color = titleStyle()
     Skin.Font(rec, frame.TitleContainer and frame.TitleContainer.TitleText, display, flag, color)
     eachCard(frame, function(card)
-        -- Ueberschriften der Karten wie die Kopfzeilen der Werte im Pilot: Theme-Schrift und Akzent.
+        -- Card headings like the stat headers in the pilot: theme font and accent.
         Skin.Font(rec, card.ProfessionName, display, flag, color)
         Skin.Font(rec, card.missingHeader, display, flag, color)
         Skin.Font(rec, card.specialization, body)
@@ -199,15 +198,15 @@ local function restore()
     Skin.CloseButton(rec, _G.ProfessionsFrame and _G.ProfessionsFrame.CloseButton, nil)
 end
 
--- Was gerade gilt, damit eine Einstellungsmeldung nicht jedes Mal neu zeichnet.
+-- What is currently applied, so a settings notification does not repaint every time.
 local drawn
 local function signature()
     if not active() then return "off" end
     return Themes.Current() .. "|" .. tostring(Themes.Color())
 end
 
--- force: auch wenn sich Theme, Farbe und Schalter nicht geaendert haben
--- (Fenster gezeigt: Blizzard setzt Bilder neu).
+-- force: even if theme, colour and option have not changed
+-- (window shown: Blizzard resets images).
 function ProfessionsSkin.Apply(force)
     local frame = _G.ProfessionsFrame
     if not (frame and art) then return end
@@ -232,8 +231,8 @@ function ProfessionsSkin.SetEnabled(on)
     ProfessionsSkin.Apply()
 end
 
--- Eigene Teile anlegen und einhaengen, sobald das Fenster da ist; nie im Kampf
--- (geschuetzte Kinder), dann bei PLAYER_REGEN_ENABLED.
+-- Create our own parts and hook in once the window exists; never in combat
+-- (protected children), then on PLAYER_REGEN_ENABLED.
 function ProfessionsSkin.Setup()
     local frame = _G.ProfessionsFrame
     if not (loggedIn and frame) or art or InCombatLockdown() then return end
@@ -244,7 +243,7 @@ function ProfessionsSkin.Setup()
     ProfessionsSkin.Apply(true)
 end
 
--- Fuer die Tests: die eigene Kunst.
+-- For the tests: our own art.
 function ProfessionsSkin.Parts() return art end
 
 ns.On("PLAYER_LOGIN", function() loggedIn = true; ProfessionsSkin.Setup() end)

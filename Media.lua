@@ -29,24 +29,23 @@ end
 
 -- A text style (Settings.TextStyle) on a font string. SHADOW is a drop
 -- shadow, the other flags are outlines.
--- Ob ein Text die verlangte Schrift hat. Eine noch nicht geladene Datei
--- (die der Themes) kann beim ersten Gebrauch abgelehnt werden.
+-- Whether a text has the requested font. A file not loaded yet (the
+-- themes' ones) can be refused on first use.
 local function hasFont(fs, path)
     local got = fs:GetFont()
     if type(got) ~= "string" then return false end
     local function plain(p) return (p:lower():gsub("/", "\\")) end
     return plain(got) == plain(path)
 end
--- Wie oft und in welchem Abstand eine abgelehnte Schrift erneut versucht wird.
+-- How often and how far apart a refused font is tried again.
 local FONT_RETRIES, FONT_RETRY_DELAY = 40, 0.25
 
--- Eine zum ersten Mal benutzte Schriftdatei kann einen Text leer lassen,
--- obwohl GetFont sie meldet (im Spiel gesehen: leere Texte, bis das Theme
--- ein zweites Mal gewaehlt wurde). Etwas spaeter ueber eine andere Schrift
--- neu gesetzt, wie bei dieser zweiten Wahl, erscheinen sie. Einmal je Text
--- und Schrift.
--- Der erste Gebrauch einer Datei kann Sekunden dauern, wenn viele
--- Schriften zugleich laden (Theme-Wechsel); je Datei nur einmal melden.
+-- A font file used for the first time can leave a text blank although
+-- GetFont reports it (seen in game: blank texts until the theme was picked
+-- a second time). Set again a little later via another font, as that second
+-- pick does, they appear. Once per text and font.
+-- A file's first use can take seconds when many fonts load at once (theme
+-- switch); report only once per file.
 local refusedFonts = {}
 
 local REDRAW_DELAYS = { 0.5, 2 }
@@ -72,7 +71,7 @@ local function setFont(fs, path, size, outline, retries)
         redrawLater(fs, path, size, outline, wanted)
         return
     end
-    -- Bis dahin die Standardschrift, sonst bliebe der Text ohne Schrift.
+    -- The default font until then, else the text would have no font.
     fs:SetFont(Media.DEFAULT.font, size, outline)
     if retries <= 0 then
         -- A hidden text (a style without a title) never makes the client
@@ -84,7 +83,7 @@ local function setFont(fs, path, size, outline, retries)
         return
     end
     C_Timer.After(FONT_RETRY_DELAY, function()
-        -- Inzwischen neu gestaltet: dieser Aufruf hat eigene Versuche.
+        -- Restyled meanwhile: that call has its own retries.
         if fs.fontWanted == wanted then setFont(fs, path, size, outline, retries - 1) end
     end)
 end

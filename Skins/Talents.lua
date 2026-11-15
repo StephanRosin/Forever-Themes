@@ -1,36 +1,35 @@
 --[[---------------------------------------------------------------------------
-Skins/Talents.lua -- Blizzards Talentfenster im zentralen Theme.
-Schalter "Blizzards Talentfenster im Theme" (Optionen, Blizzards Fenster),
-kontoweit, Standard aus. Gebaut wie Skins/Character.lua.
+Skins/Talents.lua -- Blizzard's talent window in the central theme.
+Option "Theme Blizzard's talent window" (options, Blizzard's windows),
+account-wide, off by default. Built like Skins/Character.lua.
 
-Forever 1.60.1 (Camelot) hat kein eigenes Talentfenster: Zauberbuch und
-Talente teilen sich PlayerSpellsFrame (Blizzard_PlayerSpells, laedt bei
-Bedarf; Camelot/Blizzard_PlayerSpellsFrame.xml), die Talente sind dessen
-Kind TalentsFrame (Camelot/ClassTalents/Blizzard_ClassTalentsFrame.xml).
-Den aeusseren Rahmen (Ring, Titelstreifen, Pitwall-Keil, Schliessen,
-Portraet, Titel) themt das Zauberbuch-Modul. Hier nur der Inhalt des
-Talentreiters:
-  - Theme-Kachel samt Toenung und dunkler Flaeche wie die Panels der Forever-Addons unter dem
-    Talentbaum; Blizzards Hintergrund, Klassenbild und Innenrahmen aus.
-    Die pulsierenden Kopien des Klassenbilds (OverlayBackground*) laufen
-    ueber Blizzards Animationen, die die Deckkraft setzen: sie werden
-    schwarz getoent, und schwarz bleibt bei additiver Mischung unsichtbar.
-  - Trennlinien zwischen den Baeumen in der Linienfarbe des Themes.
-  - Kopf je Baum: Name in Theme-Schrift und Akzent, Punktzahl in der
-    Textschrift, Ring um das Symbol in der Symbolfarbe, Zahlkasten grau.
-  - Reiter der Spezialisierungen: grau, Auswahl und Hover in der Symbolfarbe.
-  - "Aktiv" in der Textschrift (ist die Friz, in der Zierschrift),
-    "Unverteilte Punkte" in der Textschrift.
-Blizzard bleibt: Talentknoepfe und Linien, Wolken/Partikel/Aktivierungs-
-Effekte, Suchfeld, Ladeauswahl, Knoepfe (Anwenden, Zuruecksetzen,
-Rueckgaengig), Kasten der Punktanzeige, Zahlen.
+Forever 1.60.1 (Camelot) has no talent window of its own: spellbook and
+talents share PlayerSpellsFrame (Blizzard_PlayerSpells, loads on demand;
+Camelot/Blizzard_PlayerSpellsFrame.xml), the talents are its child
+TalentsFrame (Camelot/ClassTalents/Blizzard_ClassTalentsFrame.xml). The
+spellbook module themes the outer frame (ring, title strip, Pitwall wedge,
+close, portrait, title). Here only the talent tab's content:
+  - Theme tile with tint and dark fill like the Forever addons' panels under
+    the talent tree; Blizzard's background, class image and inset hidden.
+    The pulsing copies of the class image (OverlayBackground*) run on
+    Blizzard's animations, which set the alpha: they are tinted black, and
+    black stays invisible with additive blending.
+  - Dividers between the trees in the theme's line colour.
+  - Header per tree: name in the theme font and accent, point count in the
+    text font, ring around the icon in the icon colour, number box grey.
+  - Specialization tabs: grey, selection and hover in the icon colour.
+  - "Active" in the text font (if that is Friz, in the title font),
+    "Unspent points" in the text font.
+Blizzard's stays: talent buttons and lines, clouds/particles/activation
+effects, search box, loadout dropdown, buttons (apply, reset, undo), the
+point display's box, numbers.
 
-Klassisch oder Schalter aus: alles wie von Blizzard (Skin.Restore).
+Classic or option off: everything as Blizzard built it (Skin.Restore).
 
-Nachgezogen bei jedem Zeigen des Reiters (einen Takt spaeter: Blizzard legt
-die Baumkoepfe erst im OnShow an) und wenn sich Theme, Farbe oder Schalter
-aendern. Nur eigene Texturen (keine Rahmen), Toenung, Schriften, Deckkraft:
-das darf auch im Kampf laufen, das Fenster ist nicht geschuetzt.
+Refreshed on every show of the tab (one frame later: Blizzard only creates
+the tree headers in OnShow) and when theme, colour or option change. Only
+our own textures (no frames), tint, fonts, alpha: that may run in combat,
+the window is not protected.
 -----------------------------------------------------------------------------]]
 
 local ADDON, ns = ...
@@ -44,7 +43,7 @@ local TAB_TINT = { 0.3, 0.3, 0.3, 1 }
 local BLACK = { 0, 0, 0, 1 }
 local BODY_FONT = "Friz Quadrata"
 local HIDDEN = { "Background", "ClassBackground", "BackgroundBorder" }
--- Additiv gemischt und von Blizzards Animationen eingeblendet.
+-- Blended additively and faded in by Blizzard's animations.
 local PULSING = { "OverlayBackgroundRight", "OverlayBackgroundMid" }
 local DIVIDERS = { "DividerHorizontalLeft", "DividerHorizontalRight", "DividerVerticalLeft", "DividerVerticalRight" }
 -- TabSystemButtonArtTemplate (Blizzard_SharedXML/Shared/TabSystem).
@@ -75,8 +74,8 @@ local function active()
     return TalentsSkin.Enabled() and Themes.Current() ~= Themes.CLASSIC
 end
 
--- Wie Character.lua: Theme-Schriften nur fuer lateinische Clients; Friz als
--- Textschrift heisst "Blizzards Schrift bleibt".
+-- As in Character.lua: theme fonts only for Latin clients; Friz as the
+-- text font means "Blizzard's font stays".
 local function fonts()
     if not LibForeverThemes.LatinClient() then return nil, nil end
     local spec = Themes.Spec(Themes.Current())
@@ -90,8 +89,8 @@ local function titleStyle()
     return look.headerFlag or "OUTLINE", { c[1], c[2], c[3], 1 }
 end
 
--- Kachel und dunkle Flaeche wie Skin.PaintArt, ohne Ring und Titelstreifen
--- (die gehoeren dem aeusseren Rahmen).
+-- Tile and dark fill like Skin.PaintArt, without ring and title strip
+-- (those belong to the outer frame).
 local function paintBack()
     local spec = Themes.Spec(Themes.Current())
     local color = spec.art and spec.art.contentShade
@@ -115,7 +114,7 @@ local function skinTabs(frame, accent)
     end
 end
 
--- Die Baumkoepfe kommen aus einem Pool (RefreshTreeHeaders): frame.treeHeaders.
+-- The tree headers come from a pool (RefreshTreeHeaders): frame.treeHeaders.
 local function skinHeaders(frame, accent, line)
     local display, body = fonts()
     local flag, color = titleStyle()
@@ -145,7 +144,7 @@ local function signature()
     return Themes.Current() .. "|" .. tostring(Themes.Color())
 end
 
--- force: auch ohne Aenderung an Theme, Farbe, Schalter (Reiter gezeigt).
+-- force: even if theme, colour, option are unchanged (tab shown).
 function TalentsSkin.Apply(force)
     local frame = talents()
     if not (frame and back) then return end
@@ -167,7 +166,7 @@ function TalentsSkin.SetEnabled(on)
     TalentsSkin.Apply()
 end
 
--- Eigene Texturen anlegen (nur Texturen: auch im Kampf erlaubt) und einhaengen.
+-- Create our own textures (textures only: allowed in combat too) and hook in.
 function TalentsSkin.Setup()
     local frame = talents()
     if not frame or back then return end
@@ -179,11 +178,11 @@ function TalentsSkin.Setup()
     TalentsSkin.Apply(true)
 end
 
--- Fuer die Tests: die eigene Kachel und die dunkle Flaeche.
+-- For the tests: our own tile and the dark fill.
 function TalentsSkin.Parts() return back, shade end
 
--- Schon geladen (ein anderes Addon lud es vor uns) oder spaeter bei Bedarf;
--- vor dem Login sind die Einstellungen noch nicht bereit.
+-- Already loaded (another addon loaded it before us) or later on demand;
+-- before login the settings are not ready yet.
 ns.On("PLAYER_LOGIN", function() loggedIn = true; TalentsSkin.Setup() end)
 ns.On("ADDON_LOADED", function(_, name) if name == BLIZZARD_ADDON and loggedIn then TalentsSkin.Setup() end end)
 ns.Settings.OnChange(function() TalentsSkin.Apply() end)

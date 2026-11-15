@@ -1,34 +1,33 @@
 --[[---------------------------------------------------------------------------
-Skins/Legacy.lua -- Blizzards Vermaechtnis-Fenster (LegacySystemFrame, Forever
-1.60.1: Blizzard_LegacySystem, nur Spielart "camelot", laedt bei Bedarf;
-LegacyMicroButton bzw. Taste TOGGLELEGACYSYSTEM) im zentralen Theme. Drei
-Seiten: Belohnungsleiste (RewardTrackPage), Herausforderungen
-(ChallengesPage), Baum (TreePage). Schalter "Blizzards Vermaechtnis-Fenster
-im Theme" (Optionen, Blizzards Fenster), kontoweit, Standard aus. Gleicher Weg
-wie Skins/Character.lua.
+Skins/Legacy.lua -- Blizzard's legacy window (LegacySystemFrame, Forever
+1.60.1: Blizzard_LegacySystem, only game type "camelot", loads on demand;
+LegacyMicroButton or key TOGGLELEGACYSYSTEM) in the central theme. Three
+pages: reward track (RewardTrackPage), challenges (ChallengesPage), tree
+(TreePage). Option "Theme Blizzard's legacy window" (options, Blizzard's
+windows), account-wide, off by default. Same approach as
+Skins/Character.lua.
 
-Im Theme:
-  - Rahmen: NineSlice, Portraet, Felsenkachel (Bg) und Streifen darunter
-    (TopTileStreaks) aus, darunter die Kunst wie die Panels der Forever-Addons (Skin.PaintArt).
-  - Die grossen Hintergrundbilder der drei Seiten aus; die senkrechten
-    Trennlinien (Herausforderungen, Baum) in der Linienfarbe des Themes.
-  - Titel in der Theme-Schrift und Kopfzeilenfarbe (Akzent); die
-    Ueberschriften "Vermaechtnispunkte" (Belohnungsleiste) und der Name des
-    gewaehlten Baums in der Textschrift (bodyFont; ist das Friz, die
-    Zierschrift).
-  - Schliessen: das gezeichnete Kreuz in der Symbolfarbe.
-  - Seitenreiter rechts: grau getoent, Auswahl und Hover in der Symbolfarbe.
-Blizzard bleibt: Belohnungskarten und Fortschrittsleisten, Punkte-Schilde,
-Kategorien- und Herausforderungsliste, Suchfelder, Filter, Talentbaum samt
-Knoepfen, Bildlaufleisten, alle Zahlen (Punkte koennen geheim sein, und die
-Punkteleiste des Baums richtet ihren Rahmen an der Textbreite aus).
+Themed:
+  - Frame: NineSlice, portrait, rock tile (Bg) and the streaks under it
+    (TopTileStreaks) hidden; under them the art like the Forever addons' panels (Skin.PaintArt).
+  - The three pages' large background images hidden; the vertical dividers
+    (challenges, tree) in the theme's line colour.
+  - Title in the theme font and header colour (accent); the headings
+    "Legacy points" (reward track) and the selected tree's name in the text
+    font (bodyFont; if that is Friz, the title font).
+  - Close: the drawn cross in the icon colour.
+  - Side tabs on the right: tinted grey, selection and hover in the icon colour.
+Blizzard's stays: reward cards and progress bars, point shields, category
+and challenge list, search boxes, filter, talent tree with its buttons,
+scroll bars, all numbers (points can be secret, and the tree's point bar
+aligns its frame to the text width).
 
-Klassisch oder Schalter aus: alles wie von Blizzard (Skin.Restore).
+Classic or option off: everything as Blizzard built it (Skin.Restore).
 
-Das Fenster laedt erst beim ersten Oeffnen (LoadOnDemand): eingerichtet
-wird bei ADDON_LOADED "Blizzard_LegacySystem" oder beim Login, falls es
-schon geladen ist. Der Rahmen ist nicht geschuetzt (keine Secure-Vorlage),
-eigene Texturen daran anzulegen geht darum auch im Kampf.
+The window only loads when first opened (LoadOnDemand): set up on
+ADDON_LOADED "Blizzard_LegacySystem" or at login if already loaded. The
+frame is not protected (no secure template), so creating our own textures
+on it works in combat too.
 -----------------------------------------------------------------------------]]
 
 local ADDON, ns = ...
@@ -38,7 +37,7 @@ local LegacySkin = {}
 ns.LegacySkin = LegacySkin
 
 local BLIZZARD_ADDON = "Blizzard_LegacySystem"
--- Bg der PortraitFrameTemplate beginnt 21 unter der Oberkante.
+-- PortraitFrameTemplate's Bg starts 21 below the top edge.
 local TITLE_HEIGHT = 21
 local TAB_TINT = { 0.3, 0.3, 0.3, 1 }
 local BODY_FONT = "Friz Quadrata"
@@ -58,7 +57,7 @@ local rec = Skin.NewRecord()
 local art
 local loggedIn = false
 
--- ForeverThemesDB direkt gelesen: AccountDB() legte sie vor ADDON_LOADED an.
+-- ForeverThemesDB read directly: AccountDB() created it before ADDON_LOADED.
 function LegacySkin.Enabled()
     return _G.ForeverThemesDB ~= nil and _G.ForeverThemesDB.skinLegacy == true
 end
@@ -67,7 +66,7 @@ local function active()
     return LegacySkin.Enabled() and Themes.Current() ~= Themes.CLASSIC
 end
 
--- Theme-Schriften haben nur lateinische Buchstaben (LibForeverThemes.LatinClient).
+-- Theme fonts only have Latin letters (LibForeverThemes.LatinClient).
 local function fonts()
     if not LibForeverThemes.LatinClient() then return nil, nil end
     local spec = Themes.Spec(Themes.Current())
@@ -81,7 +80,7 @@ local function titleStyle()
     return look.headerFlag or "OUTLINE", { c[1], c[2], c[3], 1 }
 end
 
--- Die senkrechte Trennlinie einer Seite: Textur ohne parentKey (Challenges).
+-- A page's vertical divider: a texture without parentKey (challenges).
 local function dividerTextures(page)
     local divider = page and page.VerticalDivider
     if not (divider and divider.GetRegions) then return {} end
@@ -116,8 +115,8 @@ local function skinTexts(frame)
     local display, body = fonts()
     local flag, color = titleStyle()
     Skin.Font(rec, frame.TitleContainer and frame.TitleContainer.TitleText, display, flag, color)
-    -- Ueberschriften im Inhalt: ist die Textschrift Friz, die Zierschrift (wie
-    -- die Stufenzeile im Charakterfenster).
+    -- Headings in the content: if the text font is Friz, the title font (like
+    -- the level line in the character window).
     local track, tree = frame.RewardTrackPage, frame.TreePage
     Skin.Font(rec, track and track.PointsLabel, body or display)
     local panel = tree and tree.LegacyTreeTraitPanel
@@ -137,8 +136,8 @@ local function signature()
     return Themes.Current() .. "|" .. tostring(Themes.Color())
 end
 
--- force: auch wenn sich Theme, Farbe und Schalter nicht geaendert haben
--- (Fenster oder Seite gezeigt).
+-- force: even if theme, colour and option have not changed
+-- (window or page shown).
 function LegacySkin.Apply(force)
     local frame = _G.LegacySystemFrame
     if not (frame and art) then return end
@@ -160,10 +159,10 @@ function LegacySkin.SetEnabled(on)
     LegacySkin.Apply()
 end
 
--- Eine Seite setzt beim Zeigen den Titel (SetTitle): einen Takt spaeter nachziehen.
+-- A page sets the title when shown (SetTitle): refresh one frame later.
 local function later() C_Timer.After(0, function() LegacySkin.Apply(true) end) end
 
--- Einmal, sobald Blizzards Fenster da ist und das Theme feststeht (Login).
+-- Once, as soon as Blizzard's window exists and the theme is known (login).
 function LegacySkin.Setup()
     local frame = _G.LegacySystemFrame
     if not (frame and loggedIn) or art then return end
@@ -177,7 +176,7 @@ function LegacySkin.Setup()
     LegacySkin.Apply(true)
 end
 
--- Fuer die Tests: die eigene Kunst.
+-- For the tests: our own art.
 function LegacySkin.Parts() return art end
 
 ns.On("PLAYER_LOGIN", function() loggedIn = true; LegacySkin.Setup() end)

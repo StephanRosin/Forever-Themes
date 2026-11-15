@@ -20,6 +20,7 @@ Locales\esES.lua
 Locales\frFR.lua
 Locale.lua
 Core.lua
+Migrate.lua
 Themes.lua
 Hub.lua
 Media.lua

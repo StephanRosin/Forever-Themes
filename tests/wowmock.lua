@@ -1,4 +1,4 @@
--- Mock der WoW-API (aus dem InfoPanel), gerade genug fuer die Tests. Lua 5.1, wie im Spiel.
+-- WoW API mock (from the InfoPanel), just enough for the tests. Lua 5.1, as in the game.
 local M = { frames = {}, byName = {}, chat = {}, hidden = {}, placed = {},
             reparented = {}, timers = {},
             fontStrings = {}, labelText = {}, anchors = {}, anchorXY = {}, scrollChild = {},
@@ -6,9 +6,9 @@ local M = { frames = {}, byName = {}, chat = {}, hidden = {}, placed = {},
 
 local widget = {}
 widget.__index = function(t, k)
-    -- Nur CamelCase-Schluessel sind WoW-Widget-Methoden. Alles andere sind
-    -- Datenfelder des Addons und muessen wie im Spiel nil liefern, sonst
-    -- verdeckt der Mock echte Zustaende (z.B. "dragging").
+    -- Only CamelCase keys are WoW widget methods. Everything else is addon
+    -- data and must return nil as in the game, or the mock hides real
+    -- state (e.g. "dragging").
     if type(k) ~= "string" or not k:match("^%u") then return nil end
     local f = function() end
     rawset(t, k, f)
@@ -42,7 +42,7 @@ local function newWidget(name)
     function w:SetWidth(v)      self._w = v end
     function w:GetWidth()       return self._w end
     function w:GetHeight()      return self._h end
-    -- Bildschirmrechteck: Tests setzen _rect = { links, unten, breite, hoehe }.
+    -- Screen rectangle: tests set _rect = { left, bottom, width, height }.
     function w:GetCenter() local r = self._rect; if r then return r[1] + r[3] / 2, r[2] + r[4] / 2 end end
     function w:GetTop() local r = self._rect; return r and (r[2] + r[4]) end
     function w:GetBottom() local r = self._rect; return r and r[2] end
@@ -53,8 +53,8 @@ local function newWidget(name)
     function w:IsShown() return self._shown end
     function w:SetShown(v) self._shown = not not v end
     function w:IsMouseOver() return self._mouseOver == true end
-    -- Aussehen (1.6): Texturen, Farben, Masken, Schatten werden gemerkt,
-    -- damit die Tests sie pruefen koennen.
+    -- Looks (1.6): textures, colours, masks and shadows are recorded
+    -- so the tests can check them.
     function w:SetTexture(t) self._texture = t end
     function w:GetTexture() return self._texture end
     function w:SetColorTexture(r, g, b, a) self._colorTexture = { r, g, b, a } ; self._texture = nil end
@@ -79,12 +79,12 @@ local function newWidget(name)
         local fs = newWidget()
         M.fontStrings[#M.fontStrings + 1] = fs
         function fs:SetText(t) self._text = t; M.labelText[self] = t end
-        -- Schrift: Ohne diese beiden passiert bei SchriftAnwenden() gar
-        -- nichts, und ein Test darueber waere wertlos.
+        -- Font: without these two, applying a font does nothing at all,
+        -- and a test of it would be worthless.
         fs._font = { "Fonts\\FRIZQT__.TTF", 10, "" }
         function fs:GetFont() return self._font[1], self._font[2], self._font[3] end
-        function fs:SetFont(pfad, groesse, flaggen)
-            self._font = { pfad, groesse, flaggen }
+        function fs:SetFont(path, size, flags)
+            self._font = { path, size, flags }
             return true
         end
         function fs:SetPoint(p, rel, p2, x, y)
@@ -95,15 +95,15 @@ local function newWidget(name)
     end
     function w:RegisterEvent(e) self._events[e] = true end
     function w:SetPoint(p, rel, p2, x, y)
-        -- SetPoint kennt mehrere Signaturen. Die Kurzform (punkt, x, y) hat
-        -- an zweiter Stelle eine Zahl statt eines Bezugsframes.
+        -- SetPoint has several signatures. The short form (point, x, y) has
+        -- a number in second place instead of a relative frame.
         if type(rel) == "number" then x, y, rel, p2 = rel, p2, nil, nil end
         M.placed[self._name or self] = { p, x, y, rel and rel.GetName and rel:GetName() }
         local key = self._name or self
         M.anchors[key] = M.anchors[key] or {}
         M.anchors[key][p] = rel and rel.GetName and rel:GetName()
-        -- Versaetze PRO Ankerpunkt merken: ein Frame kann mehrere haben, und
-        -- M.placed haelt nur den zuletzt gesetzten.
+        -- Record offsets PER anchor point: a frame can have several, and
+        -- M.placed only holds the last one set.
         M.anchorXY[key] = M.anchorXY[key] or {}
         M.anchorXY[key][p] = { x, y }
     end
@@ -131,7 +131,7 @@ UIParent = newWidget("UIParent")
 function UIParent:GetRight() return 1920 end
 function UIParent:GetWidth() return 1920 end
 
--- Farben als Tabelle wie ColorMixin (nur die Felder, die gelesen werden).
+-- Colours as a table like ColorMixin (only the fields that are read).
 function CreateColor(r, g, b, a) return { r = r, g = g, b = b, a = a } end
 function UIParent:GetHeight() return 1080 end
 
@@ -139,7 +139,7 @@ M.registered = {}
 InterfaceOptions_AddCategory = function(panel)
     M.registered[#M.registered + 1] = panel.name
 end
--- Settings absichtlich NICHT definieren: so wird der Rueckfallpfad geprueft.
+-- Settings deliberately NOT defined: this tests the fallback path.
 
 Minimap = newWidget("Minimap")
 M.minimapRight, M.minimapTop = 1900, 800
@@ -161,7 +161,7 @@ function GetGameTime() return 21, 7 end
 function date(f) return "21:07" end
 LibStub = function(n) if n == "LibDBIcon-1.0" then return { radius = 5, SetButtonRadius = function() end } end end
 
--- Chatfenster und Reiter wie im Spiel: zehn Fenster, davon zwei offen.
+-- Chat frames and tabs as in the game: ten frames, two of them open.
 NUM_CHAT_WINDOWS = 10
 M.tabAlpha = {}
 for i = 1, 12 do
@@ -179,7 +179,7 @@ M.updateAlphaCalls = 0
 function FCFTab_UpdateAlpha(frame) M.updateAlphaCalls = M.updateAlphaCalls + 1 end
 M.hooks = {}
 function hooksecurefunc(name, fn) M.hooks[name] = fn end
--- Bildschirm 1920 breit; die Karte endet bei 2020-... siehe M.minimapRight.
+-- Screen 1920 wide; the map ends at 2020-... see M.minimapRight.
 function UIParent:GetRight() return 1920 end
 function UIParent:GetHeight() return 1080 end
 StaticPopupDialogs = {}
@@ -208,7 +208,7 @@ function IsControlKeyDown()  return M.state.ctrl end
 function IsMouseButtonDown() return M.state.mouseDown end
 function GetCursorPosition() return M.state.cursor[1], M.state.cursor[2] end
 
--- Die Minimap: Groesse merken, Position aus einer festen oberen rechten Ecke
+-- The minimap: record size, position from a fixed top-right corner
 Minimap = newWidget("Minimap")
 M.minimapRight, M.minimapTop = 1900, 800
 function Minimap:GetRight() return M.minimapRight end
@@ -217,9 +217,9 @@ function Minimap:GetZoom()  return M.state.zoom end
 function Minimap:SetZoom(z) M.state.zoom = z; M.zoomCalls = (M.zoomCalls or 0) + 1 end
 function Minimap:GetZoomLevels() return 6 end
 
--- Blizzard-Frames, die das Addon anfasst
--- Hoehen wie im Spiel unterschiedlich: GameTimeFrame (Tag/Nacht) ist groesser.
--- Groessen wie im echten Dump gemessen.
+-- Blizzard frames the addon touches
+-- Heights differ as in the game: GameTimeFrame (day/night) is larger.
+-- Sizes as measured in the real dump.
 local blizzHeights = {
     MinimapBorder = 192, MinimapNorthTag = 16, MinimapZoomIn = 32, MinimapZoomOut = 32,
     MiniMapTracking = 32, MiniMapMailFrame = 33, MiniMapBattlefieldFrame = 33,
@@ -228,8 +228,8 @@ local blizzHeights = {
     MiniMapInstanceDifficulty = 46, MiniMapWorldMapButton = 33,
     MinimapCluster = 165,
 }
--- Breiten ebenso aus dem Dump: 32/33/33/50 -- der Groessenunterschied ist
--- genau der Grund, weshalb die Spalte ueber Mittelpunkte ausgerichtet wird.
+-- Widths also from the dump: 32/33/33/50 -- the size difference is
+-- exactly why the column is aligned by centre points.
 local blizzWidths = {
     MinimapBorder = 192, MinimapNorthTag = 16, MinimapZoomIn = 32, MinimapZoomOut = 32,
     MiniMapTracking = 32, MiniMapMailFrame = 33, MiniMapBattlefieldFrame = 33,
@@ -238,8 +238,8 @@ local blizzWidths = {
     MiniMapInstanceDifficulty = 38, MiniMapWorldMapButton = 33,
     MinimapCluster = 177,
 }
--- Post und Schlachtfeld sind im Normalfall AUS -- genau darum ging es beim
--- Luecken-Fehler in der Spalte.
+-- Mail and battlefield are normally OFF -- that is exactly what the
+-- gap bug in the column was about.
 local blizzHidden = { MiniMapMailFrame = true, MiniMapBattlefieldFrame = true }
 for n, h in pairs(blizzHeights) do
     local f = newWidget(n)
@@ -248,8 +248,8 @@ for n, h in pairs(blizzHeights) do
     f._shown = not blizzHidden[n]
     _G[n] = f
 end
--- MiniMapWorldMapButton und MinimapBorderTop bleiben absichtlich nil,
--- damit die Absicherung im Addon geprueft wird.
+-- MiniMapWorldMapButton and MinimapBorderTop stay nil on purpose,
+-- so the addon's guard is tested.
 
 -- LibDBIcon
 M.iconRefreshes = 0
@@ -257,7 +257,7 @@ local dbicon = { radius = 5 }
 function dbicon:SetButtonRadius(r) self.radius = r; M.iconRefreshes = M.iconRefreshes + 1 end
 LibStub = function(name) if name == "LibDBIcon-1.0" then return dbicon end end
 
--- Zusaetzliche Spiel-APIs, die die Addons beim Login brauchen.
+-- Additional game APIs the addons need at login.
 function UnitClass()  return "Warlock", "WARLOCK" end
 function UnitRace()   return "Human", "Human" end
 function UnitName()   return "Testchar" end
@@ -265,12 +265,12 @@ function UnitLevel()  return 43 end
 function UnitExists() return false end
 function UnitFactionGroup() return "Alliance" end
 
--- WoW Forever fuehrt die Ehre als PvP-Rang ueber C_MajorFactions, Fraktion
--- 2800, und holt den Rangtitel aus den Textbausteinen. Siehe
--- Blizzard_UIPanels_Game/Camelot/PVPRankFrame.lua im forever-Zweig.
-M.state.rang = nil        -- nil heisst: dieser Client kennt das nicht
+-- WoW Forever tracks honour as a PvP rank via C_MajorFactions, faction
+-- 2800, and takes the rank title from the global strings. See
+-- Blizzard_UIPanels_Game/Camelot/PVPRankFrame.lua in the forever branch.
+M.state.rang = nil        -- nil means: this client does not know it
 M.state.rangTexte = {
-    -- Schluessel wie im Original: PVP_RANK_<Enum-Wert>_<0 Horde | 1 Allianz>
+    -- Keys as in the original: PVP_RANK_<enum value>_<0 Horde | 1 Alliance>
     ["PVP_RANK_6_1"] = "Sergeant",
 }
 PVP_RANK_0_NAME = "Ohne Rang"
@@ -287,7 +287,7 @@ C_MajorFactions = {
 }
 function UnitCreatureFamily() return nil end
 function GetRealmName() return "Testrealm" end
--- Vier Rueckgaben wie im Spiel: Version, Build, Datum, Interface-Nummer.
+-- Four returns as in the game: version, build, date, interface number.
 M.build = { "1.60.1", "70374", "Oct 1 2026", 16001 }
 function GetBuildInfo() return M.build[1], M.build[2], M.build[3], M.build[4] end
 function GetNumSpellTabs() return 0 end
@@ -300,7 +300,7 @@ function GetItemCount() return 0 end
 function IsUsableSpell() return true, false end
 function GetSpellCooldown() return 0, 0 end
 function GetSpellTexture(s) return "TEX:" .. tostring(s) end
--- M.combat: im Kampf (Tests, die geschuetzte Rahmen pruefen).
+-- M.combat: in combat (tests that check protected frames).
 function InCombatLockdown() return M.combat == true end
 function ClearOverrideBindings() end
 function SetOverrideBindingClick() end
@@ -308,20 +308,20 @@ C_EventUtils = { IsEventValid = function() return true end }
 BOOKTYPE_SPELL = "spell"
 function wipe(t) for k in pairs(t) do t[k] = nil end return t end
 
--- Spielzustand fuer InfoPanel
+-- Game state for the InfoPanel
 M.state = M.state or {}
 M.state.items = { [6265] = 7, [20559] = 42 }
-M.state.honor = nil             -- absichtlich nicht verfuegbar
+M.state.honor = nil             -- deliberately unavailable
 function GetItemCount(id) return M.state.items[id] or 0 end
 function GetItemIcon(id) return M.state.items[id] and ("ICON:" .. id) or nil end
 
--- Ehre ist eine Waehrung, keine Beutelmarke.
+-- Honour is a currency, not a bag token.
 Constants = { CurrencyConsts = { HONOR_CURRENCY_ID = 1792 } }
 M.state.currency = {
     [1792] = { quantity = 1350, iconFileID = "ICON:honor", name = "Honor" },
 }
--- Waehrungsfenster: Liste aus { name, currencyID?, isHeader? }; die ID
--- kommt sonst ueber einen Link wie im Spiel.
+-- Currency frame: list of { name, currencyID?, isHeader? }; otherwise the
+-- ID comes via a link as in the game.
 M.state.currencyList = {}
 HONOR = "Ehre"
 C_CurrencyInfo = {
@@ -340,17 +340,17 @@ C_CurrencyInfo = {
     end,
 }
 function GetItemInfo(id)
-    if id == 6948 then return "Hearthstone" end   -- englischer Client
+    if id == 6948 then return "Hearthstone" end   -- English client
     return M.state.items[id] and ("Item" .. id) or nil
 end
 function GetItemIcon(id) return "ICON:" .. tostring(id) end
 function GetBindLocation() return "Ironforge" end
 function GetTime() return M.state.now or 0 end
 
--- Abklingzeit des Ruhesteins, von den Tests gestellt.
+-- Hearthstone cooldown, set by the tests.
 M.state.now = 10000
 M.state.cooldowns = {}
--- Forever: Gegenstaende und Beutel nur unter C_Item / C_Container.
+-- Forever: items and bags only under C_Item / C_Container.
 C_Item = {
     GetItemCount = function(id) return GetItemCount(id) end,
     GetItemInfo = function(id) return GetItemInfo(id) end,

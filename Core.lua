@@ -32,6 +32,7 @@ end
 --   skin<Window>           a Blizzard window skin switched on
 --   blizzardTexts, damageFont, platynator   the Blizzard texts and Platynator bridges
 --   minimapShow, minimapAngle, language
+--   migrated               the first run's take-over done (Migrate.lua)
 function ns.AccountDB()
     ForeverThemesDB = ForeverThemesDB or {}
     return ForeverThemesDB

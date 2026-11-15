@@ -1,10 +1,10 @@
--- Blizzards Charakterfenster im Theme (Skins/Skin.lua, Skins/Character.lua).
--- Eigene Datei, damit wowmock.lua unberuehrt bleibt: das Fenster ist hier
--- nachgestellt, so weit das Addon es anfasst (Camelot/CharacterFrame.xml).
+-- Blizzard's character frame in the theme (Skins/Skin.lua, Skins/Character.lua).
+-- Own file so wowmock.lua stays untouched: the frame is rebuilt here
+-- as far as the addon touches it (Camelot/CharacterFrame.xml).
 local M = dofile("wowmock.lua")
 
--- Blizzards Rahmen: zaehlt jede Aenderung an Anordnung und Sichtbarkeit
--- (verboten: nur Texturen, Schriften, Deckkraft).
+-- Blizzard's frames: counts every change to layout and visibility
+-- (forbidden: only textures, fonts, alpha).
 local layoutCalls = 0
 local function blizzard(name)
     local w = M.newWidget(name)
@@ -80,7 +80,7 @@ local ns = dofile("load.lua")()
 local pass, fail = 0, 0
 local function check(label, got, want)
     if got == want then pass = pass + 1; print(("  OK   %-52s -> %s"):format(label, tostring(got)))
-    else fail = fail + 1; print(("  FAIL %-52s -> %s   (erwartet: %s)"):format(label, tostring(got), tostring(want))) end
+    else fail = fail + 1; print(("  FAIL %-52s -> %s   (want: %s)"):format(label, tostring(got), tostring(want))) end
 end
 local function list(t) return t and table.concat(t, ",") or "nil" end
 
@@ -96,44 +96,44 @@ local title = frame.TitleContainer.TitleText
 local FRIZ = "Fonts\\FRIZQT__.TTF"
 local function alpha(region) return region:GetAlpha() end
 
-print("\nSchalter aus (Standard):")
-check("angelegt beim Login", art ~= nil, true)
-check("Standard aus", Skin.Enabled(), false)
+print("\nSwitch off (default):")
+check("created at login", art ~= nil, true)
+check("off by default", Skin.Enabled(), false)
 Themes.Switch("WOOD")
-check("Wood ohne Schalter: NineSlice bleibt", alpha(frame.NineSlice), 1)
-check("Wood ohne Schalter: keine Kachel", art.back:IsShown(), false)
-check("Wood ohne Schalter: Titel in Friz", (title:GetFont()), FRIZ)
+check("Wood without switch: NineSlice stays", alpha(frame.NineSlice), 1)
+check("Wood without switch: no tile", art.back:IsShown(), false)
+check("Wood without switch: title in Friz", (title:GetFont()), FRIZ)
 
-print("\nSchalter an:")
--- Eine Kopfzeile und ein Wert der Werteliste, schon vor dem Einschalten belegt.
+print("\nSwitch on:")
+-- A header and a stats row, already filled before switching on.
 local header = { Background = tex(), Title = blizzard():CreateFontString() }
 local statRow = { Label = blizzard():CreateFontString(), Value = blizzard():CreateFontString() }
 rowCallback(nil, header)
 rowCallback(nil, statRow)
 layoutCalls = 0
 Skin.SetEnabled(true)
-check("gespeichert kontoweit", ForeverThemesDB.skinCharacter, true)
-check("Kachel sichtbar", art.back:IsShown(), true)
-check("NineSlice aus", alpha(frame.NineSlice), 0)
-check("Portraet aus", alpha(frame.PortraitContainer), 0)
-check("Hintergrund links aus", alpha(generalBg), 0)
-check("Hintergrund rechts aus", alpha(statBg), 0)
-check("Steinkopf aus", alpha(stoneBg), 0)
-check("Blizzards Trennlinie aus", alpha(divider), 0)
-check("eigene Trennlinie an", line:IsShown(), true)
-check("Klassenbild aus", alpha(stats.ClassBackground), 0)
-check("Streifen ueber dem Modell aus", alpha(doll.TopBackgroundStripHost.TopBackgroundStrip), 0)
-check("Schliessen: Blizzards Bild aus", alpha(closeTextures[1]), 0)
-check("Titel: Cinzel", (title:GetFont()), Media.FontPath("Cinzel"))
-check("Stufe: bodyFont Friz -> Zierschrift", (CharacterLevelText:GetFont()), Media.FontPath("Cinzel"))
-check("Kopfzeile der Werte: Band aus", alpha(header.Background), 0)
-check("Kopfzeile der Werte: Cinzel", (header.Title:GetFont()), Media.FontPath("Cinzel"))
+check("saved account-wide", ForeverThemesDB.skinCharacter, true)
+check("tile visible", art.back:IsShown(), true)
+check("NineSlice off", alpha(frame.NineSlice), 0)
+check("portrait off", alpha(frame.PortraitContainer), 0)
+check("left background off", alpha(generalBg), 0)
+check("right background off", alpha(statBg), 0)
+check("stone header off", alpha(stoneBg), 0)
+check("Blizzard's divider off", alpha(divider), 0)
+check("own divider on", line:IsShown(), true)
+check("class art off", alpha(stats.ClassBackground), 0)
+check("strip above the model off", alpha(doll.TopBackgroundStripHost.TopBackgroundStrip), 0)
+check("close: Blizzard's art off", alpha(closeTextures[1]), 0)
+check("title: Cinzel", (title:GetFont()), Media.FontPath("Cinzel"))
+check("level: bodyFont Friz -> display font", (CharacterLevelText:GetFont()), Media.FontPath("Cinzel"))
+check("stats header: band off", alpha(header.Background), 0)
+check("stats header: Cinzel", (header.Title:GetFont()), Media.FontPath("Cinzel"))
 local icon = Themes.IconColor()
-check("Reiter: Auswahl in der Symbolfarbe", list(tab.SelectedTexture._vertex), list({ icon[1], icon[2], icon[3], 1 }))
-check("Reiter: entsaettigt", tab.SelectedTexture:IsDesaturated(), true)
-check("keine Anordnung an Blizzards Rahmen", layoutCalls, 0)
+check("tab: selection in the icon colour", list(tab.SelectedTexture._vertex), list({ icon[1], icon[2], icon[3], 1 }))
+check("tab: desaturated", tab.SelectedTexture:IsDesaturated(), true)
+check("no layout on Blizzard's frames", layoutCalls, 0)
 
-print("\nWie das Panel, je Theme und Farbe:")
+print("\nLike the panel, per theme and colour:")
 local mismatch = {}
 for _, id in ipairs(Themes.IDS) do
     if id ~= Themes.CLASSIC then
@@ -142,76 +142,76 @@ for _, id in ipairs(Themes.IDS) do
             Themes.SetColor(color, id)
             panel.Paint()
             local where = id .. "/" .. color
-            if art.back._texture ~= panel.bg._texture then mismatch[#mismatch + 1] = where .. " Textur" end
-            if list(art.back._vertex) ~= list(panel.bg._vertex) then mismatch[#mismatch + 1] = where .. " Toenung" end
+            if art.back._texture ~= panel.bg._texture then mismatch[#mismatch + 1] = where .. " texture" end
+            if list(art.back._vertex) ~= list(panel.bg._vertex) then mismatch[#mismatch + 1] = where .. " tint" end
             local mine, theirs = ns.Border.Pieces(art.over)[1], ns.Border.Pieces(panel)[1]
-            if list(mine._vertex) ~= list(theirs._vertex) then mismatch[#mismatch + 1] = where .. " Rand" end
+            if list(mine._vertex) ~= list(theirs._vertex) then mismatch[#mismatch + 1] = where .. " border" end
         end
     end
 end
-check("Kachel, Toenung und Rand wie das InfoPanel", table.concat(mismatch, "; "), "")
+check("tile, tint and border like the InfoPanel", table.concat(mismatch, "; "), "")
 
-print("\nThemenwechsel:")
+print("\nTheme switch:")
 Themes.SetColor("ORANGE", "PITWALL")
 Themes.Switch("PITWALL")
-check("Pitwall: Keil", art.wedge:IsShown(), true)
-check("Pitwall: Keil in der Farbe", list(art.wedge._vertex), list(Themes.Wedge({ 0.882, 0.024, 0, 1 })))
-check("Pitwall: Titel Titillium", (title:GetFont()), Media.FontPath("Titillium Web Bold Italic"))
-check("Pitwall: Stufe in der Textschrift", (CharacterLevelText:GetFont()), Media.FontPath("Titillium Web SemiBold"))
-check("Pitwall: Bezeichnung in der Textschrift", (statRow.Label:GetFont()), Media.FontPath("Titillium Web SemiBold"))
-check("Pitwall: Zahl unberuehrt (kann geheim sein)", (statRow.Value:GetFont()), FRIZ)
+check("Pitwall: wedge", art.wedge:IsShown(), true)
+check("Pitwall: wedge in the colour", list(art.wedge._vertex), list(Themes.Wedge({ 0.882, 0.024, 0, 1 })))
+check("Pitwall: title Titillium", (title:GetFont()), Media.FontPath("Titillium Web Bold Italic"))
+check("Pitwall: level in the body font", (CharacterLevelText:GetFont()), Media.FontPath("Titillium Web SemiBold"))
+check("Pitwall: label in the body font", (statRow.Label:GetFont()), Media.FontPath("Titillium Web SemiBold"))
+check("Pitwall: number untouched (may be secret)", (statRow.Value:GetFont()), FRIZ)
 Themes.Switch("FROST")
-check("Frost: Titel Julius", (title:GetFont()), Media.FontPath("Julius Sans One"))
-check("Frost: kein Keil", art.wedge:IsShown(), false)
-check("Frost: dunkle Flaeche", art.shade:IsShown(), true)
--- Blizzard zeigt einen Reiter und setzt die Titelfarbe neu: einen Takt spaeter nachgezogen.
+check("Frost: title Julius", (title:GetFont()), Media.FontPath("Julius Sans One"))
+check("Frost: no wedge", art.wedge:IsShown(), false)
+check("Frost: dark shade", art.shade:IsShown(), true)
+-- Blizzard shows a tab and resets the title colour: reapplied one tick later.
 title:SetTextColor(1, 1, 1, 1)
 M.timers = {}
 _G.ReputationFrame._scriptHooks.OnShow()
 for _, fn in ipairs(M.timers) do fn() end
 local accent = Themes.Accent(Themes.SPECS.FROST.look.headerColor)
-check("Reiter gezeigt: Titel wieder im Akzent", list(title._textColor), list({ accent[1], accent[2], accent[3], 1 }))
+check("tab shown: title back in the accent", list(title._textColor), list({ accent[1], accent[2], accent[3], 1 }))
 local newRow = { Background = tex(), Title = blizzard():CreateFontString() }
 rowCallback(nil, newRow)
-check("neue Zeile der Werteliste: Julius", (newRow.Title:GetFont()), Media.FontPath("Julius Sans One"))
+check("new stats row: Julius", (newRow.Title:GetFont()), Media.FontPath("Julius Sans One"))
 
-print("\nKlassisch stellt alles her:")
+print("\nClassic restores everything:")
 Themes.Switch("CLASSIC")
-check("NineSlice zurueck", alpha(frame.NineSlice), 1)
-check("Steinkopf auf seine Deckkraft", alpha(stoneBg), 0.5)
-check("Trennlinie zurueck", alpha(divider), 1)
-check("eigene Trennlinie aus", line:IsShown(), false)
-check("Kachel aus", art.back:IsShown(), false)
-check("Keil aus", art.wedge:IsShown(), false)
-check("Titel in Friz", (title:GetFont()), FRIZ)
-check("Bezeichnung in Friz", (statRow.Label:GetFont()), FRIZ)
-check("Reiter nicht mehr entsaettigt", tab.SelectedTexture:IsDesaturated(), false)
-check("Reiter ungetoent", list(tab.SelectedTexture._vertex), "1,1,1,1")
-check("Schliessen: Blizzards Bild zurueck", alpha(closeTextures[1]), 1)
-check("Ring weg", ns.Border.Pieces(art.over)[1]:IsShown(), false)
+check("NineSlice back", alpha(frame.NineSlice), 1)
+check("stone header at its own alpha", alpha(stoneBg), 0.5)
+check("divider back", alpha(divider), 1)
+check("own divider off", line:IsShown(), false)
+check("tile off", art.back:IsShown(), false)
+check("wedge off", art.wedge:IsShown(), false)
+check("title in Friz", (title:GetFont()), FRIZ)
+check("label in Friz", (statRow.Label:GetFont()), FRIZ)
+check("tab no longer desaturated", tab.SelectedTexture:IsDesaturated(), false)
+check("tab untinted", list(tab.SelectedTexture._vertex), "1,1,1,1")
+check("close: Blizzard's art back", alpha(closeTextures[1]), 1)
+check("ring gone", ns.Border.Pieces(art.over)[1]:IsShown(), false)
 
-print("\nSchalter aus unter einem Theme:")
+print("\nSwitch off under a theme:")
 Themes.Switch("TECH")
-check("Tech: Titel Space Grotesk", (title:GetFont()), Media.FontPath("Space Grotesk"))
+check("Tech: title Space Grotesk", (title:GetFont()), Media.FontPath("Space Grotesk"))
 Skin.SetEnabled(false)
-check("aus: gespeichert ohne Eintrag", ForeverThemesDB.skinCharacter, nil)
-check("aus: NineSlice zurueck", alpha(frame.NineSlice), 1)
-check("aus: Titel in Friz", (title:GetFont()), FRIZ)
-check("aus: Kachel aus", art.back:IsShown(), false)
+check("off: saved without entry", ForeverThemesDB.skinCharacter, nil)
+check("off: NineSlice back", alpha(frame.NineSlice), 1)
+check("off: title in Friz", (title:GetFont()), FRIZ)
+check("off: tile off", art.back:IsShown(), false)
 frame._scriptHooks.OnShow()
-check("aus: Zeigen aendert nichts", alpha(frame.NineSlice), 1)
+check("off: showing changes nothing", alpha(frame.NineSlice), 1)
 
-print("\nFallen:")
+print("\nTraps:")
 local found = {}
 for _, f in ipairs({ "Skins/Skin.lua", "Skins/Character.lua" }) do
     local h = assert(io.open(ADDONDIR .. "/" .. f)); local src = h:read("*a"); h:close()
-    -- Kommentare zaehlen nicht: sie erklaeren gerade, warum es fehlt.
+    -- Comments do not count: they explain why it is missing.
     src = src:gsub("%-%-%[%[.-%]%]", ""):gsub("%-%-[^\n]*", "")
     if src:find("hooksecurefunc") then found[#found + 1] = f end
 end
-check("kein hooksecurefunc", table.concat(found, ","), "")
-check("Schalter in allen Sprachen", ns.Locales.deDE.OPT_SKIN_CHARACTER ~= nil and ns.Locales.esES.OPT_SKIN_CHARACTER ~= nil
+check("no hooksecurefunc", table.concat(found, ","), "")
+check("switch in all languages", ns.Locales.deDE.OPT_SKIN_CHARACTER ~= nil and ns.Locales.esES.OPT_SKIN_CHARACTER ~= nil
     and ns.Locales.frFR.OPT_SKIN_CHARACTER ~= nil and ns.Locales.enUS.OPT_SKIN_CHARACTER ~= nil, true)
 
-print(("\n%d bestanden, %d fehlgeschlagen"):format(pass, fail))
+print(("\n%d passed, %d failed"):format(pass, fail))
 os.exit(fail == 0 and 0 or 1)

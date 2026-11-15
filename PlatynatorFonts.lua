@@ -3,13 +3,18 @@ local _, ns = ...
 -- "Theme font for Platynator" (ForeverThemesDB.platynatorFont, from Forever
 -- Unit Frames' Core/PlatynatorFonts.lua): every own design in Platynator's
 -- active profile (design.font.asset) takes the central theme's font
--- (Themes.Font); outline and shadow stay Platynator's. While this addon is
--- loaded it owns this (LibForeverThemes.Hub(); the Unit Frames' and
--- InfoPanel's bridges stand down). Its
--- shipped designs ("_deer", "_hare_simplified", ...) are not stored and
--- stay as they are. The first change remembers each design's font
+-- (Themes.Font); outline and shadow stay Platynator's. Its shipped designs
+-- ("_deer", "_hare_simplified", ...) are not stored and stay as they are. The first change remembers each design's font
 -- (ForeverThemesDB.platynator.snapshot[profile][design]); Classic or
 -- the switch off puts exactly that back and forgets it.
+--
+-- While this addon is loaded it owns this (LibForeverThemes.Hub()): the
+-- Unit Frames' and InfoPanel's bridges stand down, putting back the
+-- originals they remembered at their PLAYER_LOGIN. Ours runs a moment after
+-- login, after theirs. A design that still carries a theme font then (their
+-- stand-down missing, or an older version) takes its original from their
+-- snapshot (<their DB>.platynator.snapshot[profile][design]), else
+-- Platynator's own font.
 --
 -- Platynator has no public way to redraw its designs (its callback
 -- registry is private, Platynator.API knows only text and import): the
@@ -53,9 +58,23 @@ local function registerFonts()
     end
 end
 
+-- The font another Forever addon remembered for a design it themed.
+local OTHER_BRIDGES = { "ForeverUnitFramesDB", "InfoPanelDB" }
+local function theirOriginal(profile, name)
+    for _, global in ipairs(OTHER_BRIDGES) do
+        local db = _G[global]
+        local store = type(db) == "table" and db.platynator
+        local snap = type(store) == "table" and type(store.snapshot) == "table" and store.snapshot[profile]
+        local asset = type(snap) == "table" and snap[name]
+        if type(asset) == "string" then return asset end
+    end
+    return nil
+end
+
 -- font into every design; new designs go into the snapshot. A design that
--- already has a theme font is a copy of a themed design (or was themed by
--- another Forever addon): it gets Platynator's own font back later.
+-- already has a theme font (under any of its names) was themed by another
+-- Forever addon, or is a copy of a themed design: it gets that addon's
+-- original back later, else Platynator's own font.
 local function apply(store, font)
     local list, profile = designs()
     if not list then return end
@@ -66,7 +85,10 @@ local function apply(store, font)
     for name, design in pairs(list) do
         local f = fontOf(design)
         if f then
-            if snap[name] == nil then snap[name] = ours[f.asset] and PLATYNATOR_DEFAULT or f.asset end
+            if snap[name] == nil then
+                snap[name] = ours[LibForeverThemes.FontName(f.asset)]
+                    and (theirOriginal(profile, name) or PLATYNATOR_DEFAULT) or f.asset
+            end
             f.asset = font
         end
     end
@@ -112,9 +134,10 @@ function PlatynatorFonts.OnLoaded()
 end
 
 ns.On("ADDON_LOADED", function(_, name) if name == "Platynator" then PlatynatorFonts.OnLoaded() end end)
--- Platynator loaded before us: done now (once more does no harm).
+-- Platynator loaded before us: done now (once more does no harm). The
+-- refresh a moment later: after the other bridges stood down (see above).
 ns.On("PLAYER_LOGIN", function()
     if _G.Platynator then PlatynatorFonts.OnLoaded() end
-    PlatynatorFonts.Refresh()
+    C_Timer.After(0, PlatynatorFonts.Refresh)
 end)
 ns.Settings.OnChange(function() PlatynatorFonts.Refresh() end)

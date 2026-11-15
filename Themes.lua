@@ -134,8 +134,11 @@ function Themes.SetColor(id, themeId)
     return true
 end
 
--- The face for Blizzard's and other addons' texts under the central theme;
--- nil under Classic and on a client whose letters the fonts lack.
+-- The face for Blizzard's texts and Platynator under the central theme,
+-- the same as Forever Unit Frames' Themes.Font (its title font, Swiss',
+-- Console's and Pitwall's text font; Comic: Bangers); nil under Classic and
+-- on a client whose letters the fonts lack. Unit Frames names Pitwall's
+-- "Titillium Web", the same file under its older name.
 function Themes.Font()
     local id = Themes.Current()
     if id == Themes.CLASSIC or not Lib.LatinClient() then return nil end

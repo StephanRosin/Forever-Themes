@@ -1,39 +1,39 @@
 --[[---------------------------------------------------------------------------
-Skins/Spellbook.lua -- Blizzards Zauberbuch im zentralen Theme. In Forever
-1.60.1 (Camelot) ist es kein eigenes Fenster: PlayerSpellsFrame
-(Blizzard_PlayerSpells, laedt bei Bedarf; Camelot/Blizzard_PlayerSpellsFrame.xml)
-traegt Zauberbuch (.SpellBookFrame) und Talente (.TalentsFrame) und zeigt je
-nach Mikroknopf eines davon. Dieses Modul nimmt den aeusseren Rahmen (auch
-unter den Talenten) und den Inhalt des Zauberbuchs; den Inhalt der Talente
-nimmt Skins/Talents.lua. Schalter "Blizzards Zauberbuch im Theme"
-(Optionen, Blizzards Fenster), kontoweit, Standard aus. Vorbild: Skins/Character.lua.
+Skins/Spellbook.lua -- Blizzard's spellbook in the central theme. In Forever
+1.60.1 (Camelot) it is no window of its own: PlayerSpellsFrame
+(Blizzard_PlayerSpells, loads on demand; Camelot/Blizzard_PlayerSpellsFrame.xml)
+holds the spellbook (.SpellBookFrame) and talents (.TalentsFrame) and shows
+one of them depending on the micro button. This module takes the outer frame
+(also under the talents) and the spellbook's content; Skins/Talents.lua takes
+the talents' content. Option "Theme Blizzard's spellbook" (options,
+Blizzard's windows), account-wide, off by default. Model: Skins/Character.lua.
 
-Im Theme:
-  - Rahmen: NineSlice, Portraet, Felsgrund und Streifen aus, darunter
-    Theme-Kachel, Ring, Titelstreifen samt Pitwall-Keil, Ornamente
-    (Skin.PaintArt) -- wie die Panels der Forever-Addons je Theme und Farbe.
-  - Pergamentseiten, Lesezeichen und Eselsohr des Buchs aus.
-  - Titel in der Theme-Schrift und Kopfzeilenfarbe (Akzent).
-  - Kopfzeilen der Seiten (Klasse, Allgemein ...): Theme-Schrift und Akzent,
-    ohne Blizzards Unterlage, Zierlinie in der Linienfarbe.
-  - Zaubernamen, Rang, "Verfuegbar ab", Seitenzahl in der Textschrift (Friz
-    bleibt) und der Wertefarbe des Themes: Blizzards dunkelbraune Tinte
-    (SPELLBOOK_FONT_COLOR) ist fuer Pergament gedacht und waere auf der
-    Theme-Kachel unlesbar.
-  - Schliessen: das gezeichnete Kreuz in der Symbolfarbe.
-  - Kategoriereiter (Symbolreiter): grau getoent, Auswahl in der Symbolfarbe.
-Blizzard bleibt: Zauberknoepfe samt Symbol, Rahmen und Unterlage (Blizzard
-setzt deren Deckkraft beim Hover selbst), Suchfeld, Einstellungsmenue,
-Rotationshelfer, Blaettern-Knoepfe, Maximieren-Knopf.
+Themed:
+  - Frame: NineSlice, portrait, rock ground and streaks hidden; under them
+    the theme tile, ring, title strip with Pitwall wedge, ornaments
+    (Skin.PaintArt) -- like the Forever addons' panels per theme and colour.
+  - The book's parchment pages, bookmark and dog-ear hidden.
+  - Title in the theme font and header colour (accent).
+  - Page headers (class, general ...): theme font and accent, without
+    Blizzard's backing, ornate line in the line colour.
+  - Spell names, rank, "Available at", page number in the text font (Friz
+    stays) and the theme's value colour: Blizzard's dark brown ink
+    (SPELLBOOK_FONT_COLOR) is meant for parchment and would be unreadable on
+    the theme tile.
+  - Close: the drawn cross in the icon colour.
+  - Category tabs (icon tabs): tinted grey, selection in the icon colour.
+Blizzard's stays: spell buttons with icon, frame and backing (Blizzard sets
+their alpha on hover itself), search box, settings menu, rotation helper,
+page buttons, maximize button.
 
-Klassisch oder Schalter aus: alles wie von Blizzard (Skin.Restore).
+Classic or option off: everything as Blizzard built it (Skin.Restore).
 
-Nachgezogen wird beim Zeigen des Fensters und des Buchs, nach jedem
-Blaettern (OnUpdate-Rueckruf des PagedSpellsFrame, kein Hook), bei
-Groessenaenderung (Minimieren) und wenn sich Theme, Farbe oder Schalter
-aendern. Nur Texturen, Schriften, Deckkraft. Die eigenen Teile entstehen
-beim Laden von Blizzard_PlayerSpells; laedt es im Kampf, erst nach dem Kampf
-(im Rahmen steckt der sichere Rotationshelfer-Knopf).
+Refreshed when the window and the book show, after every page turn
+(PagedSpellsFrame's OnUpdate callback, not a hook), on resize (minimize)
+and when theme, colour or option change. Only textures, fonts, alpha. Our
+own parts are created when Blizzard_PlayerSpells loads; if it loads in
+combat, only after combat (the frame holds the secure rotation helper
+button).
 -----------------------------------------------------------------------------]]
 
 local ADDON, ns = ...
@@ -43,11 +43,11 @@ local SpellbookSkin = {}
 ns.SpellbookSkin = SpellbookSkin
 
 local BLIZZARD_ADDON = "Blizzard_PlayerSpells"
--- PortraitFrameTexturedBaseTemplate: der Felsgrund beginnt 21 unter der Oberkante.
+-- PortraitFrameTexturedBaseTemplate: the rock ground starts 21 below the top edge.
 local TITLE_HEIGHT = 21
 local TAB_TINT = { 0.3, 0.3, 0.3, 1 }
 local BODY_FONT = "Friz Quadrata"
--- Blizzards Rahmen- und Buchkunst (SharedUIPanelTemplates.xml, Blizzard_SpellBookFrame.xml).
+-- Blizzard's frame and book art (SharedUIPanelTemplates.xml, Blizzard_SpellBookFrame.xml).
 local FRAME_ART = { "NineSlice", "PortraitContainer", "Bg", "TopTileStreaks" }
 local BOOK_ART = { "BookBGHalved", "BookBGLeft", "BookBGRight", "Bookmark", "BookCornerFlipbook" }
 local ITEM_TEXTS = { "Name", "SubName", "RequiredLevel" }
@@ -66,7 +66,7 @@ local rec = Skin.NewRecord()
 local art, loggedIn, hooked
 local pageFrames = setmetatable({}, { __mode = "k" })
 
--- ForeverThemesDB direkt gelesen: AccountDB() legte sie vor ADDON_LOADED an.
+-- ForeverThemesDB read directly: AccountDB() created it before ADDON_LOADED.
 function SpellbookSkin.Enabled()
     return _G.ForeverThemesDB ~= nil and _G.ForeverThemesDB.skinSpellbook == true
 end
@@ -75,18 +75,18 @@ local function active()
     return SpellbookSkin.Enabled() and Themes.Current() ~= Themes.CLASSIC
 end
 
--- Theme-Schriften haben nur lateinische Buchstaben (LibForeverThemes.LatinClient):
--- sonst nil, nil. Ist die Textschrift Friz, kommt Friz (Blizzards eigene)
--- zurueck: die Seitentexte brauchen trotzdem die Farbe.
+-- Theme fonts only have Latin letters (LibForeverThemes.LatinClient):
+-- else nil, nil. If the text font is Friz, Friz (Blizzard's own) comes
+-- back: the page texts still need the colour.
 local function fonts()
     if not LibForeverThemes.LatinClient() then return nil, nil end
     local spec = Themes.Spec(Themes.Current())
     return spec.font, spec.bodyFont or spec.font or BODY_FONT
 end
 
--- Schrift und Farbe; ohne Schrift (nicht lateinischer Client) bleibt
--- Blizzards Schrift und nur die Farbe wechselt -- Blizzards Tinte ist fuer
--- Pergament. Skin.Restore stellt beides her (Snapshot samt Farbe).
+-- Font and colour; without a font (non-Latin client) Blizzard's font stays
+-- and only the colour changes -- Blizzard's ink is meant for parchment.
+-- Skin.Restore puts both back (snapshot including colour).
 local function ink(fs, fontName, flag, color)
     if fontName then return Skin.Font(rec, fs, fontName, flag, color) end
     if not (fs and fs.SetTextColor) then return end
@@ -111,8 +111,8 @@ local function lineColor()
     return { l[1], l[2], l[3], l[4] }
 end
 
--- Ein Element einer Seite: Kopfzeile (Text, SpellBookHeaderTemplate) oder
--- Zauber (Name ..., SpellBookItemTemplate).
+-- An element of a page: header (Text, SpellBookHeaderTemplate) or
+-- spell (Name ..., SpellBookItemTemplate).
 local function skinPageFrame(f)
     pageFrames[f] = true
     if not active() then return end
@@ -137,7 +137,7 @@ local function skinTabs(book, accent)
     end
 end
 
--- Die Seiten wechseln (Blaettern, Suche, Kategorie): neue Elemente, neue Reiter.
+-- The pages change (page turn, search, category): new elements, new tabs.
 local function skinPages()
     local book = _G.PlayerSpellsFrame and _G.PlayerSpellsFrame.SpellBookFrame
     local paged = book and book.PagedSpellsFrame
@@ -168,8 +168,8 @@ local function signature()
     return Themes.Current() .. "|" .. tostring(Themes.Color())
 end
 
--- force: auch ohne Aenderung von Theme, Farbe und Schalter (Fenster gezeigt,
--- Groesse geaendert: Blizzard setzt Farben neu, die Rundung braucht die Masse).
+-- force: even if theme, colour and option are unchanged (window shown,
+-- resized: Blizzard resets colours, the rounding needs the dimensions).
 function SpellbookSkin.Apply(force)
     local frame = _G.PlayerSpellsFrame
     if not (frame and art) then return end
@@ -195,8 +195,8 @@ end
 
 local function forced() SpellbookSkin.Apply(true) end
 
--- Eigene Teile anlegen und einhaengen, sobald Blizzard_PlayerSpells geladen
--- ist; nie im Kampf (PLAYER_REGEN_ENABLED holt es nach).
+-- Create our own parts and hook in once Blizzard_PlayerSpells has loaded;
+-- never in combat (PLAYER_REGEN_ENABLED catches up).
 function SpellbookSkin.Setup()
     local frame = _G.PlayerSpellsFrame
     if not (loggedIn and frame) or art or InCombatLockdown() then return end
@@ -209,7 +209,7 @@ function SpellbookSkin.Setup()
         local book = frame.SpellBookFrame
         if book then
             book:HookScript("OnShow", forced)
-            -- Eigener Besitzer: Blizzard meldet sich dort mit dem Buch selbst an.
+            -- Our own owner: Blizzard registers itself there with the book.
             book.PagedSpellsFrame:RegisterCallback(PagedContentFrameBaseMixin.Event.OnUpdate, skinPages,
                 SpellbookSkin)
         end
@@ -217,7 +217,7 @@ function SpellbookSkin.Setup()
     forced()
 end
 
--- Fuer die Tests: die eigene Kunst.
+-- For the tests: our own art.
 function SpellbookSkin.Parts() return art end
 
 ns.On("PLAYER_LOGIN", function() loggedIn = true; SpellbookSkin.Setup() end)
