@@ -1,0 +1,142 @@
+local _, ns = ...
+
+-- English is the base language and always loads first. Every other language
+-- (Locales/<code>.lua) fills a table of its own; Locale.lua picks one. ns.L
+-- holds no strings itself: it looks a key up in the chosen language, then in
+-- English, and a key missing from both comes back as it is, so a missing
+-- string shows in the game instead of raising an error.
+local L = {}
+ns.Locales = { enUS = L }
+
+local active = L
+ns.L = setmetatable({}, {
+    __index = function(_, key)
+        local v = active[key]
+        if v == nil then v = L[key] end
+        if v == nil then return key end
+        return v
+    end,
+    __newindex = function() error("ns.L is read-only; add strings to Locales/*.lua") end,
+})
+
+-- Locale.lua only: shows the given language's table through ns.L.
+function ns.SetActiveLocale(code)
+    active = ns.Locales[code] or L
+end
+
+L.ADDON_NAME = "Forever Themes"
+
+L.OPEN_OPTIONS = "Open the options"
+L.OPT_LANGUAGE = "Language"
+L.LANGUAGE_AUTO = "Game language"
+L.TAB_THEME = "Theme"
+L.TAB_ADDONS = "Addons"
+L.TAB_WINDOWS = "Blizzard's windows"
+L.TAB_TEXTS = "Blizzard's texts"
+L.HEADER_THEME = "One theme for all Forever addons"
+L.OPT_THEME = "Theme"
+L.HINT_THEME = "Every addon that follows wears it"
+L.OPT_COLOR = "Colour"
+L.OPT_MINIMAP = "Minimap button"
+L.THEME_AND_COLOR = "%s, %s"
+L.HEADER_ADDONS = "Follow the central theme or keep their own"
+L.ADDONS_NONE = "No Forever addon with themes is loaded"
+L.FOLLOW = "Follows the central theme"
+L.OWN = "Own theme"
+L.ADDON_NOW = "Now: %s"
+L.HEADER_WINDOWS = "Blizzard's windows in the theme"
+L.TIP_WINDOWS = "Only the look: backdrop, rim, title, tabs, close button and fonts. Switched off, or under Classic, the window is exactly as Blizzard made it."
+L.HEADER_TEXTS = "The theme's font beyond the Forever addons"
+L.OPT_BLIZZARD_TEXTS = "Theme font for Blizzard texts"
+L.HINT_BLIZZARD_TEXTS = "Cast bar, buff timers, Cooldown Manager, errors"
+L.TIP_BLIZZARD_TEXTS = "The player's cast bar, the buff and debuff timers, the Cooldown Manager's numbers, the red error line and the damage numbers above enemies. The damage numbers follow at your next login; /reload is not enough."
+L.OPT_PLATYNATOR = "Theme font for Platynator"
+L.HINT_PLATYNATOR = "Your own nameplate designs, after /reload"
+L.TIP_PLATYNATOR = "Your own Platynator designs take the theme's font; its shipped designs stay as they are. Platynator shows the new font after a /reload."
+L.PLATYNATOR_RELOAD = "Platynator: /reload to apply the new font."
+L.MENU_OPTIONS = "Options…"
+L.MINIMAP_LEFT_CLICK = "Left-click: options"
+L.MINIMAP_RIGHT_CLICK = "Right-click: theme menu"
+L.MINIMAP_DRAG = "Drag: move along the minimap's edge"
+L.MSG_REFUSED = "Theme not applied to: %s"
+L.MSG_ADDON_ERROR = "%s failed to change its theme: %s"
+L.FONT_REFUSED = "Font could not be loaded: %s"
+
+-- The themes and their colours (as in every Forever addon).
+L.THEME_CLASSIC = "Classic"
+L.THEME_WOOD = "Wooden plaque"
+L.THEME_TECH = "Technology / AI"
+L.THEME_PARCHMENT = "Parchment & seal"
+L.THEME_RUNESTONE = "Runestone"
+L.THEME_GLASS = "Stained glass"
+L.THEME_COMIC = "Comic"
+L.THEME_FROST = "Frost"
+L.THEME_PIXEL = "Pixel"
+L.THEME_SWISS = "Swiss Clean"
+L.THEME_CONSOLE = "Console"
+L.THEME_PITWALL = "Pitwall"
+L.THEME_COLOR_WOOD_OAK = "Oak"
+L.THEME_COLOR_WOOD_WALNUT = "Walnut"
+L.THEME_COLOR_WOOD_BIRCH = "Birch"
+L.THEME_COLOR_WOOD_CHERRY = "Cherry"
+L.THEME_COLOR_WOOD_EBONY = "Ebony"
+L.THEME_COLOR_WOOD_DRIFTWOOD = "Driftwood"
+L.THEME_COLOR_TECH_CYAN = "Cyan"
+L.THEME_COLOR_TECH_GREEN = "Green"
+L.THEME_COLOR_TECH_AMBER = "Amber"
+L.THEME_COLOR_TECH_MAGENTA = "Magenta"
+L.THEME_COLOR_TECH_BLUE = "Blue"
+L.THEME_COLOR_TECH_GREY = "Grey"
+L.THEME_COLOR_PARCHMENT_CLASSIC = "Classic"
+L.THEME_COLOR_PARCHMENT_AGED = "Aged"
+L.THEME_COLOR_PARCHMENT_ASH = "Ash"
+L.THEME_COLOR_PARCHMENT_SEA = "Sea"
+L.THEME_COLOR_PARCHMENT_ROSE = "Rose"
+L.THEME_COLOR_PARCHMENT_DARK = "Dark"
+L.THEME_COLOR_RUNESTONE_GRANITE = "Granite"
+L.THEME_COLOR_RUNESTONE_SANDSTONE = "Sandstone"
+L.THEME_COLOR_RUNESTONE_SLATE = "Slate"
+L.THEME_COLOR_RUNESTONE_MOSS = "Moss"
+L.THEME_COLOR_RUNESTONE_OBSIDIAN = "Obsidian"
+L.THEME_COLOR_GLASS_CATHEDRAL = "Cathedral"
+L.THEME_COLOR_GLASS_BLUE = "Blue"
+L.THEME_COLOR_GLASS_GREEN = "Green"
+L.THEME_COLOR_GLASS_AMBER = "Amber"
+L.THEME_COLOR_GLASS_VIOLET = "Violet"
+L.THEME_COLOR_GLASS_RUBY = "Ruby"
+L.THEME_COLOR_COMIC_GREY = "Grey"
+L.THEME_COLOR_COMIC_DARKGREY = "Dark grey"
+L.THEME_COLOR_COMIC_BLACK = "Black"
+L.THEME_COLOR_COMIC_WHITE = "White"
+L.THEME_COLOR_COMIC_YELLOW = "Yellow"
+L.THEME_COLOR_COMIC_BLUE = "Blue"
+L.THEME_COLOR_COMIC_RED = "Red"
+L.THEME_COLOR_COMIC_GREEN = "Green"
+L.THEME_COLOR_COMIC_PURPLE = "Purple"
+L.THEME_COLOR_FROST_ICE = "Ice"
+L.THEME_COLOR_FROST_DEEP = "Deep"
+L.THEME_COLOR_FROST_AURORA = "Aurora"
+L.THEME_COLOR_FROST_VIOLET = "Violet"
+L.THEME_COLOR_FROST_SILVER = "Silver"
+L.THEME_COLOR_FROST_NIGHT = "Night"
+L.THEME_COLOR_PIXEL_NAVY = "Navy"
+L.THEME_COLOR_PIXEL_PLUM = "Plum"
+L.THEME_COLOR_PIXEL_FOREST = "Forest"
+L.THEME_COLOR_PIXEL_BROWN = "Brown"
+L.THEME_COLOR_PIXEL_GREY = "Grey"
+L.THEME_COLOR_PIXEL_BLACK = "Black"
+L.THEME_COLOR_PIXEL_TEAL = "Teal"
+L.THEME_COLOR_PIXEL_PURPLE = "Purple"
+L.THEME_COLOR_PIXEL_HANDHELD = "Handheld"
+L.THEME_COLOR_SWISS_RED = "Red"
+L.THEME_COLOR_SWISS_BLUE = "Blue"
+L.THEME_COLOR_SWISS_YELLOW = "Yellow"
+L.THEME_COLOR_SWISS_WHITE = "White"
+L.THEME_COLOR_CONSOLE_MINT = "Mint"
+L.THEME_COLOR_CONSOLE_AMBER = "Amber"
+L.THEME_COLOR_CONSOLE_PHOSPHOR = "Phosphor"
+L.THEME_COLOR_CONSOLE_VIOLET = "Violet"
+L.THEME_COLOR_PITWALL_RED = "Red"
+L.THEME_COLOR_PITWALL_ORANGE = "Orange"
+L.THEME_COLOR_PITWALL_TEAL = "Teal"
+L.THEME_COLOR_PITWALL_SILVER = "Silver"

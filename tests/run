@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Runs the tests with Lua 5.1, as in the game; each file in its own process.
+# Never in parallel with another Forever test run:
+#   flock /tmp/claude-1000/forever-tests.lock tests/run
+set -e
+HERE="$(cd "$(dirname "$0")" && pwd)"
+cd "$HERE"
+ROOT="$(cd "$HERE/.." && pwd)"
+status=0
+for t in run.lua skin_character.lua skin_spellbook.lua skin_talents.lua skin_professions.lua skin_legacy.lua \
+         skin_communities.lua skin_collections.lua; do
+    [ -f "$t" ] || continue
+    echo "== $t"
+    lua5.1 -e "ADDONDIR='$ROOT'" "$t" || status=1
+done
+exit $status

@@ -1,0 +1,44 @@
+## Interface: 20506, 16001
+## Title: Forever Themes
+## Notes: One theme for all your Forever addons, and optional skins for Blizzard's windows.
+## Notes-deDE: Ein Theme für alle Forever-Addons, dazu wahlweise Skins für Blizzards Fenster.
+## Notes-esES: Un tema para todos tus addons Forever y, si quieres, para las ventanas de Blizzard.
+## Notes-esMX: Un tema para todos tus addons Forever y, si quieres, para las ventanas de Blizzard.
+## Notes-frFR: Un thème pour tous vos addons Forever, et en option pour les fenêtres de Blizzard.
+## Version: 0.1.0
+## X-Curse-Project-ID: 1807938
+## IconTexture: Interface\AddOns\ForeverThemes\Media\MinimapIcon.tga
+## AddonCompartmentFunc: ForeverThemes_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: ForeverThemes_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: ForeverThemes_OnAddonCompartmentLeave
+## SavedVariables: ForeverThemesDB
+
+Libs\LibForeverThemes\LibForeverThemes.lua
+Locales\enUS.lua
+Locales\deDE.lua
+Locales\esES.lua
+Locales\frFR.lua
+Locale.lua
+Core.lua
+Themes.lua
+Hub.lua
+Media.lua
+Corners.lua
+Border.lua
+Skins\Skin.lua
+Skins\Character.lua
+Skins\Spellbook.lua
+Skins\Talents.lua
+Skins\Professions.lua
+Skins\Legacy.lua
+Skins\Communities.lua
+Skins\Collections.lua
+BlizzardFonts.lua
+PlatynatorFonts.lua
+Options\Style.lua
+Options\Widgets.lua
+OptionsPanel.lua
+Options.lua
+Menu.lua
+MinimapButton.lua
+Commands.lua
