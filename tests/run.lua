@@ -211,6 +211,12 @@ _G.UIErrorsFrame = errorsFrame
 function errorsFrame:GetFont() return "Fonts\\FRIZQT__.TTF", 14, "OUTLINE" end
 function errorsFrame:SetFont(p, s, f) self._font = { p, s, f } end
 function errorsFrame:GetObjectType() return "MessageFrame" end
+local combatText = { _font = { "Fonts\\FRIZQT__.TTF", 25, "" } }
+_G.CombatTextFont = combatText
+function combatText:GetFont() return unpack(self._font) end
+function combatText:SetFont(p, s, f) self._font = { p, s, f } end
+function combatText:GetFontObject() return nil end
+function combatText:GetObjectType() return "Font" end
 local Fonts = ns.BlizzardFonts
 check("off by default", Fonts.Enabled(), false)
 Themes.Switch("PITWALL")
@@ -219,6 +225,7 @@ Fonts.SetEnabled(true)
 local body = ns.Media.FontPath("Titillium Web SemiBold")
 check("on: cast bar in the theme's text font", (bar.Text:GetFont()), body)
 check("on: error line too", errorsFrame._font[1], body)
+check("on: floating combat text too", combatText._font[1], body)
 check("damage numbers kept for the next login", ForeverThemesDB.damageFont, "Titillium Web SemiBold")
 Themes.Switch("WOOD")
 check("Wood: Friz body gives the title font", (bar.Text:GetFont()), ns.Media.FontPath("Cinzel"))
@@ -228,6 +235,7 @@ check("Classic: no damage font", ForeverThemesDB.damageFont, nil)
 Themes.Switch("FROST")
 Fonts.SetEnabled(false)
 check("off: back to Friz", (bar.Text:GetFont()), "Fonts\\FRIZQT__.TTF")
+check("off: combat text back to Friz, size kept", combatText._font[1] .. combatText._font[2], "Fonts\\FRIZQT__.TTF25")
 DAMAGE_TEXT_FONT = nil
 ForeverThemesDB.damageFont = "Cinzel"
 fire("ADDON_LOADED", "ForeverThemes")

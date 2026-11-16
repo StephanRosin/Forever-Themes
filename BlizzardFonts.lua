@@ -8,7 +8,9 @@ local ADDON, ns = ...
 -- or NumberFontNormal, also carry tooltips, quest and chat text): the
 -- player's cast bar (Text, CastTimeText), the duration and count of the buff
 -- and debuff icons, the Cooldown Manager's numbers (countdown, charges,
--- stacks, the buff bars' duration) and the red error line (UIErrorsFrame).
+-- stacks, the buff bars' duration), the red error line (UIErrorsFrame) and
+-- the floating combat text (font object CombatTextFont, only Blizzard_CombatText
+-- uses it; each new line takes it again, sizes come from SetTextHeight).
 -- The first change remembers each text's font for the session; Classic or
 -- the switch off puts it back.
 --
@@ -63,6 +65,7 @@ function BlizzardFonts.Targets()
         end
     end
     add(list, _G.UIErrorsFrame)
+    add(list, _G.CombatTextFont)
     return list
 end
 
