@@ -297,6 +297,22 @@ for id, want in pairs(UNIT_FRAMES_FONT) do
 end
 table.sort(differ)
 check("every theme as Unit Frames", table.concat(differ, ","), "")
+-- HD: the same font as its base, so the damage numbers too.
+local hdDiffer = {}
+for id in pairs(UNIT_FRAMES_FONT) do
+    if Themes.SPECS[id .. "_HD"] then
+        Themes.Switch(id .. "_HD")
+        local hdFont = Themes.Font()
+        Themes.Switch(id)
+        if hdFont ~= Themes.Font() then hdDiffer[#hdDiffer + 1] = id .. "_HD" end
+    end
+end
+table.sort(hdDiffer)
+check("every HD theme in its base's font", table.concat(hdDiffer, ","), "")
+Themes.Switch("COMIC_HD")
+Fonts.SetEnabled(true)
+check("Comic HD: damage numbers kept in Bangers", ForeverThemesDB.damageFont, "Bangers")
+Fonts.SetEnabled(false)
 Themes.Switch("CLASSIC")
 check("Classic: none", Themes.Font(), nil)
 Themes.Switch("COMIC")
