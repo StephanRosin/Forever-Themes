@@ -234,6 +234,19 @@ function combatText:GetFont() return unpack(self._font) end
 function combatText:SetFont(p, s, f) self._font = { p, s, f } end
 function combatText:GetFontObject() return nil end
 function combatText:GetObjectType() return "Font" end
+local swing = CreateFrame("Frame", "SwingTimerMainHandFrame")
+_G.SwingTimerMainHandFrame = swing
+swing.StatusBar = CreateFrame("StatusBar", nil, swing)
+swing.StatusBar.TypeLabel = swing.StatusBar:CreateFontString()
+swing.StatusBar.TimeLabel = swing.StatusBar:CreateFontString()
+-- Baganator's skin API: the slots there are, a listener for new ones.
+local bagSlot = CreateFrame("Button")
+bagSlot.Count = bagSlot:CreateFontString()
+local bagLevel = bagSlot:CreateFontString()
+local bagFrames, bagListeners = { { regionType = "ItemButton", region = bagSlot },
+    { regionType = "CornerWidget", region = bagLevel } }, {}
+Baganator = { API = { Skins = { GetAllFrames = function() return bagFrames end,
+    RegisterListener = function(f) bagListeners[#bagListeners + 1] = f end } } }
 local Fonts = ns.BlizzardFonts
 check("off by default", Fonts.Enabled(), false)
 Themes.Switch("PITWALL")
@@ -243,11 +256,17 @@ local body = ns.Media.FontPath("Titillium Web SemiBold")
 check("on: cast bar in the theme's text font", (bar.Text:GetFont()), body)
 check("on: error line too", errorsFrame._font[1], body)
 check("on: floating combat text too", combatText._font[1], body)
+check("on: swing timer labels too", (swing.StatusBar.TypeLabel:GetFont()) .. " " .. (swing.StatusBar.TimeLabel:GetFont()),
+    body .. " " .. body)
+check("on: Baganator's stack count and item level too", (bagSlot.Count:GetFont()) .. " " .. (bagLevel:GetFont()),
+    body .. " " .. body)
 check("damage numbers kept for the next login", ForeverThemesDB.damageFont, "Titillium Web SemiBold")
 Themes.Switch("WOOD")
 check("Wood: Friz body gives the title font", (bar.Text:GetFont()), ns.Media.FontPath("Cinzel"))
 Themes.Switch("CLASSIC")
 check("Classic: cast bar back to Friz", (bar.Text:GetFont()), "Fonts\\FRIZQT__.TTF")
+check("Classic: swing timer and bag back", (swing.StatusBar.TimeLabel:GetFont()) .. " " .. (bagSlot.Count:GetFont()),
+    "Fonts\\FRIZQT__.TTF Fonts\\FRIZQT__.TTF")
 check("Classic: no damage font", ForeverThemesDB.damageFont, nil)
 Themes.Switch("FROST")
 Fonts.SetEnabled(false)
@@ -322,6 +341,10 @@ fire("PLAYER_LOGIN")
 runTimers()
 check("Comic: damage numbers in Bangers", DAMAGE_TEXT_FONT, ns.Media.FontPath("Bangers"))
 check("Comic: cast bar in Bangers", (bar.Text:GetFont()), ns.Media.FontPath("Bangers"))
+local newSlot = CreateFrame("Button")
+newSlot.Count = newSlot:CreateFontString()
+for _, listener in ipairs(bagListeners) do listener({ regionType = "ItemButton", region = newSlot }) end
+check("Comic: a bag slot made later in Bangers", (newSlot.Count:GetFont()), ns.Media.FontPath("Bangers"))
 Fonts.SetEnabled(false)
 
 section("Platynator: taken over from Unit Frames")

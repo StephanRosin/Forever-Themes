@@ -10,7 +10,10 @@ local ADDON, ns = ...
 -- and debuff icons, the Cooldown Manager's numbers (countdown, charges,
 -- stacks, the buff bars' duration), the red error line (UIErrorsFrame) and
 -- the floating combat text (font object CombatTextFont, only Blizzard_CombatText
--- uses it; each new line takes it again, sizes come from SetTextHeight).
+-- uses it; each new line takes it again, sizes come from SetTextHeight), the
+-- swing timers' labels (SwingTimerMainHand/OffHand/RangedFrame) and, with
+-- Baganator, the texts on its bag slots (stack count, corner widgets such as
+-- item level), reached through its skin API (Baganator.API.Skins).
 -- The first change remembers each text's font for the session; Classic or
 -- the switch off puts it back.
 --
@@ -29,12 +32,21 @@ ns.BlizzardFonts = BlizzardFonts
 local COOLDOWN_VIEWERS = { "EssentialCooldownViewer", "UtilityCooldownViewer", "BuffIconCooldownViewer",
     "BuffBarCooldownViewer" }
 local AURA_FRAMES = { "BuffFrame", "DebuffFrame" }
+local SWING_TIMERS = { "SwingTimerMainHandFrame", "SwingTimerOffHandFrame", "SwingTimerRangedFrame" }
 
 -- FontString (or MessageFrame) -> its font before the first change.
 local originals = setmetatable({}, { __mode = "k" })
 
 local function add(list, fs)
     if type(fs) == "table" and fs.GetFont and fs.SetFont then list[#list + 1] = fs end
+end
+
+-- A Baganator region's texts: an item slot's stack count, a corner widget
+-- that is a text itself (item level and the like; icons are textures).
+local function bagTexts(list, details)
+    local region = details.region
+    if details.regionType == "ItemButton" then add(list, region.Count)
+    elseif details.regionType == "CornerWidget" then add(list, region) end
 end
 
 local function castBarTexts(list)
@@ -64,6 +76,12 @@ function BlizzardFonts.Targets()
             add(list, item.Bar and item.Bar.Duration)
         end
     end
+    for _, name in ipairs(SWING_TIMERS) do
+        local bar = _G[name] and _G[name].StatusBar
+        if bar then add(list, bar.TypeLabel); add(list, bar.TimeLabel) end
+    end
+    local skins = _G.Baganator and Baganator.API and Baganator.API.Skins
+    for _, details in ipairs(skins and skins.GetAllFrames and skins.GetAllFrames() or {}) do bagTexts(list, details) end
     add(list, _G.UIErrorsFrame)
     add(list, _G.CombatTextFont)
     return list
@@ -126,8 +144,23 @@ ns.On("ADDON_LOADED", function(_, name)
     if font then _G.DAMAGE_TEXT_FONT = ns.Media.FontPath(font) end
 end)
 
+-- Baganator makes slots as bags open: each new one takes the font at once.
+local function hookBaganator()
+    local skins = _G.Baganator and Baganator.API and Baganator.API.Skins
+    if not (skins and skins.RegisterListener) then return end
+    skins.RegisterListener(function(details)
+        local font = wanted()
+        if font then
+            local list = {}
+            bagTexts(list, details)
+            setFont(list, ns.Media.FontPath(font))
+        end
+    end)
+end
+
 ns.On("PLAYER_LOGIN", function()
     hookCastBar()
+    hookBaganator()
     if _G.EventRegistry then
         -- A moment later: the Cooldown Manager builds its icons first.
         EventRegistry:RegisterCallback("CooldownViewerSettings.OnDataChanged", function()
