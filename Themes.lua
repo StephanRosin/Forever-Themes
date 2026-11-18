@@ -24,6 +24,9 @@ Themes.CLASSIC = Lib.CLASSIC
 Themes.IDS = Lib.IDS
 Themes.COLORS = Lib.COLORS
 
+-- The HD themes (WOOD_HD, ...) are their base's part here over a finer
+-- backdrop of their own (Lib.Specs, withHd). An addon without them refuses
+-- them (UNKNOWN): following and "Apply to all" leave it on its own theme.
 Themes.SPECS = Lib.Specs({
     WOOD = {
         look = { borderStyle = "GOLD", borderSize = 3, cornerRadius = 4, shadowEnabled = true, shadowSize = 6,
@@ -86,7 +89,7 @@ Themes.SPECS = Lib.Specs({
         art = { shine = { 0, 0, 0 }, line = { 0, 0, 0, 1 }, band = { color = T.PITWALL.strip },
             contentShade = { 0, 0, 0, 0.85 } },
     },
-})
+}, true)
 -- Classic draws nothing; its look only keeps the skins' lookups safe.
 Themes.SPECS.CLASSIC.look = {}
 

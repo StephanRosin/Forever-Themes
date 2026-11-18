@@ -134,6 +134,23 @@ _G.ForeverThemes.ForeverGroupFinder = gf.entry
 Themes.Switch("TECH")
 check("lacking addon unchanged", gf.theme, "WOOD")
 check("no retry for it", #M.timers, 0)
+-- The HD themes: offered here; an addon without them (written before) keeps
+-- its own theme and colour, quietly, while one that has them follows.
+local hd = addon("ForeverHdAddon", "TECH", nil, { themes = { TECH = true, WOOD_HD = true } })
+_G.ForeverThemes.ForeverHdAddon = hd.entry
+ForeverThemesDB.known.ForeverHdAddon = true
+calls = {}
+local chatBefore = #M.chat
+check("HD theme offered centrally", Themes.Switch("WOOD_HD"), true)
+check("HD colour", Themes.SetColor("EBONY"), true)
+check("HD addon follows with the colour", hd.theme .. "/" .. hd.entry.Color(), "WOOD_HD/EBONY")
+check("addons without HD keep their theme", gf.theme .. " " .. fuf.theme .. " " .. old.theme, "WOOD TECH TECH")
+check("no colour sent where the theme was refused", table.concat(calls, " "):find("ForeverUnitFrames:", 1, true), nil)
+check("no retry, no message", #M.timers .. " " .. #M.chat - chatBefore, "0 0")
+local switched, failed = Lib.ApplyToAll("SomeAddon", "WOOD_HD", "EBONY")
+check("Apply to all: addons without HD skipped, no error", switched .. " " .. #failed .. " " .. ql.theme, "0 0 FROST")
+_G.ForeverThemes.ForeverHdAddon = nil
+Themes.Switch("TECH")
 
 section("Refused in combat: again after combat")
 fuf.refuse = "COMBAT"
@@ -600,6 +617,16 @@ for _, code in ipairs({ "deDE", "esES", "frFR" }) do
     table.sort(missing)
     check(code .. ": every key", table.concat(missing, ","), "")
 end
+-- Every theme the menu offers (the HD ones too) and each colour named in English.
+local unnamed = {}
+for _, id in ipairs(Lib.SpecIds(Themes.SPECS)) do
+    if ns.Locales.enUS["THEME_" .. id] == nil then unnamed[#unnamed + 1] = id end
+    for _, c in ipairs(Lib.Colors(id)) do
+        if ns.Locales.enUS["THEME_COLOR_" .. id .. "_" .. c] == nil then unnamed[#unnamed + 1] = id .. "_" .. c end
+    end
+end
+check("every theme and colour named", table.concat(unnamed, ","), "")
+check("the HD themes offered", Themes.SPECS.FROST_HD ~= nil and Themes.SPECS.COMIC_HD ~= nil, true)
 local damage = 0
 for _, code in ipairs({ "enUS", "deDE", "esES", "frFR" }) do
     if ns.Locales[code].TIP_BLIZZARD_TEXTS:find("/reload", 1, true) then damage = damage + 1 end

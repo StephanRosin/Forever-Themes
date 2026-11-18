@@ -12,14 +12,20 @@ return function(ns)
     panel.bg = panel:CreateTexture()
     function panel.Paint()
         local id = Themes.Current()
-        local b = THEME_BACKS[id]
+        -- An HD theme (<BASE>_HD): every colour its own finished file, white at the base's alpha.
+        local base = id:match("^(.+)_HD$")
+        local b = THEME_BACKS[base or id]
         if not b then return end
-        local alpha = BG_ALPHA[id] or 1
+        local alpha = BG_ALPHA[base or id] or 1
         local c = Lib.Paint(id, Themes.Color())
         local back = b[1] .. "Back"
         local mean = c and c.back and Lib.GREY_MEAN[back]
-        panel.bg:SetTexture(Lib.Texture(mean and back .. "Grey.tga" or back .. ".tga"), "REPEAT", "REPEAT")
-        if mean then
+        local hd = base and Lib.Colour(id, Themes.Color()).texture
+        panel.bg:SetTexture(Lib.Texture(hd and hd .. ".tga" or mean and back .. "Grey.tga" or back .. ".tga"),
+            "REPEAT", "REPEAT")
+        if hd then
+            panel.bg:SetVertexColor(1, 1, 1, alpha)
+        elseif mean then
             panel.bg:SetVertexColor(math.min(1, c.back[1] / mean), math.min(1, c.back[2] / mean),
                 math.min(1, c.back[3] / mean), alpha)
         elseif c and c.paper then
