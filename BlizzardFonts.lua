@@ -11,9 +11,11 @@ local ADDON, ns = ...
 -- stacks, the buff bars' duration), the red error line (UIErrorsFrame) and
 -- the floating combat text (font object CombatTextFont, only Blizzard_CombatText
 -- uses it; each new line takes it again, sizes come from SetTextHeight), the
--- swing timers' labels (SwingTimerMainHand/OffHand/RangedFrame) and, with
--- Baganator, the texts on its bag slots (stack count, corner widgets such as
--- item level), reached through its skin API (Baganator.API.Skins).
+-- swing timers' labels (SwingTimerMainHand/OffHand/RangedFrame), the breath,
+-- fatigue and feign-death bars (MirrorTimerContainer.mirrorTimers[i].Text) and,
+-- with Baganator, the texts on its bag slots (stack count, corner widgets
+-- such as item level) and its category headers, reached through its skin API
+-- (Baganator.API.Skins).
 -- The first change remembers each text's font for the session; Classic or
 -- the switch off puts it back.
 --
@@ -42,11 +44,15 @@ local function add(list, fs)
 end
 
 -- A Baganator region's texts: an item slot's stack count, a corner widget
--- that is a text itself (item level and the like; icons are textures).
+-- that is a text itself (item level and the like; icons are textures), a
+-- category's label and section header (buttons with a text).
 local function bagTexts(list, details)
-    local region = details.region
-    if details.regionType == "ItemButton" then add(list, region.Count)
-    elseif details.regionType == "CornerWidget" then add(list, region) end
+    local region, kind = details.region, details.regionType
+    if kind == "ItemButton" then add(list, region.Count)
+    elseif kind == "CornerWidget" then add(list, region)
+    elseif (kind == "CategoryLabel" or kind == "CategorySectionHeader") and region.GetFontString then
+        add(list, region:GetFontString())
+    end
 end
 
 local function castBarTexts(list)
@@ -80,6 +86,8 @@ function BlizzardFonts.Targets()
         local bar = _G[name] and _G[name].StatusBar
         if bar then add(list, bar.TypeLabel); add(list, bar.TimeLabel) end
     end
+    local mirror = _G.MirrorTimerContainer
+    for _, timer in ipairs(mirror and mirror.mirrorTimers or {}) do add(list, timer.Text) end
     local skins = _G.Baganator and Baganator.API and Baganator.API.Skins
     for _, details in ipairs(skins and skins.GetAllFrames and skins.GetAllFrames() or {}) do bagTexts(list, details) end
     add(list, _G.UIErrorsFrame)

@@ -239,12 +239,19 @@ _G.SwingTimerMainHandFrame = swing
 swing.StatusBar = CreateFrame("StatusBar", nil, swing)
 swing.StatusBar.TypeLabel = swing.StatusBar:CreateFontString()
 swing.StatusBar.TimeLabel = swing.StatusBar:CreateFontString()
+local mirror = CreateFrame("Frame", "MirrorTimerContainer")
+_G.MirrorTimerContainer = mirror
+mirror.mirrorTimers = { CreateFrame("Frame", nil, mirror) }
+mirror.mirrorTimers[1].Text = mirror.mirrorTimers[1]:CreateFontString()
 -- Baganator's skin API: the slots there are, a listener for new ones.
 local bagSlot = CreateFrame("Button")
 bagSlot.Count = bagSlot:CreateFontString()
 local bagLevel = bagSlot:CreateFontString()
+local bagHeader = CreateFrame("Button")
+local bagHeaderText = bagHeader:CreateFontString()
+function bagHeader:GetFontString() return bagHeaderText end
 local bagFrames, bagListeners = { { regionType = "ItemButton", region = bagSlot },
-    { regionType = "CornerWidget", region = bagLevel } }, {}
+    { regionType = "CornerWidget", region = bagLevel }, { regionType = "CategorySectionHeader", region = bagHeader } }, {}
 Baganator = { API = { Skins = { GetAllFrames = function() return bagFrames end,
     RegisterListener = function(f) bagListeners[#bagListeners + 1] = f end } } }
 local Fonts = ns.BlizzardFonts
@@ -258,6 +265,8 @@ check("on: error line too", errorsFrame._font[1], body)
 check("on: floating combat text too", combatText._font[1], body)
 check("on: swing timer labels too", (swing.StatusBar.TypeLabel:GetFont()) .. " " .. (swing.StatusBar.TimeLabel:GetFont()),
     body .. " " .. body)
+check("on: breath bar too", (mirror.mirrorTimers[1].Text:GetFont()), body)
+check("on: Baganator's category header too", (bagHeaderText:GetFont()), body)
 check("on: Baganator's stack count and item level too", (bagSlot.Count:GetFont()) .. " " .. (bagLevel:GetFont()),
     body .. " " .. body)
 check("damage numbers kept for the next login", ForeverThemesDB.damageFont, "Titillium Web SemiBold")
