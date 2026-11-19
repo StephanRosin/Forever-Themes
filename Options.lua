@@ -9,6 +9,7 @@ PLAYER_LOGIN, after ours.
 
 local ADDON, ns = ...
 local L = ns.L
+local Lib = LibForeverThemes
 local Themes, Hub = ns.Themes, ns.Hub
 
 local FOLLOW, OWN = "FOLLOW", "OWN"
@@ -27,26 +28,44 @@ function ns.ThemeLabel(theme, color)
     return L.THEME_AND_COLOR:format(ns.ThemeName(theme), ns.ColorName(theme, color))
 end
 
+-- The theme menu: base themes only, an HD theme shows as its base (its
+-- colours are in the colour menu). Stored ids keep their meaning.
 local function themeChoices()
     local list = {}
-    for _, id in ipairs(Themes.IDS) do list[#list + 1] = { value = id, label = ns.ThemeName(id) } end
+    for _, id in ipairs(Lib.MenuIds(Themes.IDS)) do list[#list + 1] = { value = id, label = ns.ThemeName(id) } end
     return list
 end
 
-local function colorChoices()
-    local theme, list = Themes.Current(), {}
-    for _, id in ipairs(Themes.Colors(theme)) do list[#list + 1] = { value = id, label = ns.ColorName(theme, id) } end
+function ns.ThemeChoice() return Lib.BaseTheme(Themes.Current()) end
+
+-- The colour menu (here and Menu.lua): the base's colours, then its HD
+-- theme's as "HD Carbon"; values Lib.MenuValue ("TECH_HD:CARBON").
+function ns.ColorChoices()
+    local list = {}
+    for _, e in ipairs(Lib.MenuColors(Themes.SPECS, Themes.Current())) do
+        local label = ns.ColorName(e.theme, e.color)
+        list[#list + 1] = { value = Lib.MenuValue(e.theme, e.color), label = e.hd and "HD " .. label or label }
+    end
     return list
+end
+
+function ns.ColorChoice() return Lib.MenuValue(Themes.Current(), Themes.Color()) end
+
+-- Colour first, then the theme: one change for the addons, not a switch
+-- with the old colour followed by the new one.
+function ns.ChooseColor(value)
+    local theme, color = Lib.ParseMenuValue(value)
+    if Themes.SetColor(color, theme) then Themes.Switch(theme) end
 end
 
 local function themePage(spec)
     spec[#spec + 1] = { type = "tab", label = "TAB_THEME" }
     spec[#spec + 1] = { type = "header", label = "HEADER_THEME" }
     spec[#spec + 1] = { type = "select", label = "OPT_THEME", hint = "HINT_THEME", choices = themeChoices,
-        get = Themes.Current, set = function(v) Themes.Switch(v) end }
-    spec[#spec + 1] = { type = "select", label = "OPT_COLOR", choices = colorChoices,
+        get = ns.ThemeChoice, set = function(v) Themes.Switch(v) end }
+    spec[#spec + 1] = { type = "select", label = "OPT_COLOR", choices = ns.ColorChoices,
         visible = function() return #Themes.Colors() > 0 end,
-        get = function() return Themes.Color() end, set = function(v) Themes.SetColor(v) end }
+        get = ns.ColorChoice, set = ns.ChooseColor }
     spec[#spec + 1] = { type = "check", label = "OPT_MINIMAP",
         get = function() return ns.MinimapButton.Get("show") end,
         set = function(v) ns.MinimapButton.Set("show", v) end }

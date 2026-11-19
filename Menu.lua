@@ -15,17 +15,17 @@ ns.Menu = Menu
 -- Fills the menu (Blizzard_Menu: rootDescription).
 function Menu.Fill(root)
     root:CreateTitle(L.ADDON_NAME)
-    for _, id in ipairs(Themes.IDS) do
-        root:CreateRadio(ns.ThemeName(id), function() return Themes.Current() == id end,
+    -- HD themes are colours of their base (Options.lua).
+    for _, id in ipairs(LibForeverThemes.MenuIds(Themes.IDS)) do
+        root:CreateRadio(ns.ThemeName(id), function() return ns.ThemeChoice() == id end,
             function() Themes.Switch(id) end)
     end
-    local theme = Themes.Current()
-    local colors = Themes.Colors(theme)
+    local colors = ns.ColorChoices()
     if #colors > 0 then
         local sub = root:CreateButton(L.OPT_COLOR)
-        for _, id in ipairs(colors) do
-            sub:CreateRadio(ns.ColorName(theme, id), function() return Themes.Color() == id end,
-                function() Themes.SetColor(id) end)
+        for _, c in ipairs(colors) do
+            sub:CreateRadio(c.label, function() return ns.ColorChoice() == c.value end,
+                function() ns.ChooseColor(c.value) end)
         end
     end
     root:CreateDivider()

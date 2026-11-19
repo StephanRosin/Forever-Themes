@@ -621,11 +621,50 @@ check("titled", log[1], "title:" .. ns.L.ADDON_NAME)
 local marked = 0
 for _, line in ipairs(log) do if line:sub(1, 1) == "*" then marked = marked + 1 end end
 check("the central theme and its colour marked", marked, 2)
-check("a theme per id, then the colours", #log >= 1 + #Themes.IDS + #Themes.Colors("PITWALL"), true)
+check("a theme per base id, then the colours", #log >= 1 + #Lib.MenuIds(Themes.IDS) + #Themes.Colors("PITWALL"), true)
 root.sets[ns.ThemeName("FROST")]()
 check("a theme picked switches the central one", Themes.Current(), "FROST")
 Lib.Hub().OpenMenu(nil)
 check("no anchor: owned by UIParent", owner, UIParent)
+
+section("HD themes as colours of their base")
+local function hasLine(want) for _, line in ipairs(log) do if line == want then return true end end return false end
+log = {}
+Themes.Switch("TECH")
+Lib.Hub().OpenMenu(element)
+check("theme menu: no HD theme", hasLine(ns.ThemeName("TECH_HD")) or hasLine("*" .. ns.ThemeName("TECH_HD")), false)
+check("colour menu: HD Carbon after the base's colours", hasLine("HD " .. ns.ColorName("TECH_HD", "CARBON")), true)
+ForeverThemesDB.theme = "TECH_HD"
+ForeverThemesDB.colors = ForeverThemesDB.colors or {}
+ForeverThemesDB.colors.TECH_HD = "CARBON"
+log = {}
+Lib.Hub().OpenMenu(element)
+check("stored TECH_HD/CARBON: Technology checked", hasLine("*" .. ns.ThemeName("TECH")), true)
+check("stored TECH_HD/CARBON: HD Carbon checked", hasLine("*HD " .. ns.ColorName("TECH_HD", "CARBON")), true)
+local themeRow, colorRow
+for _, row in ipairs(spec) do
+    if row.label == "OPT_THEME" then themeRow = row end
+    if row.label == "OPT_COLOR" then colorRow = row end
+end
+local themeIds = {}
+for _, c in ipairs(themeRow.choices()) do themeIds[#themeIds + 1] = c.value end
+check("options: theme list without HD", table.concat(themeIds, ","), table.concat(Lib.MenuIds(Lib.IDS), ","))
+check("options: theme shows the base", themeRow.get(), "TECH")
+check("options: colour shows HD Carbon", colorRow.get(), "TECH_HD:CARBON")
+Themes.Switch("WOOD")
+local hdEbony
+for _, c in ipairs(ns.ColorChoices()) do if c.value == "WOOD_HD:EBONY" then hdEbony = c end end
+check("options: HD colour labelled", hdEbony and hdEbony.label, "HD " .. ns.ColorName("WOOD_HD", "EBONY"))
+ForeverThemesDB.colors.TECH_HD = nil
+Themes.Switch("TECH")
+calls = {}
+log = {}
+Lib.Hub().OpenMenu(element)
+root.sets["HD " .. ns.ColorName("TECH_HD", "CARBON")]()
+check("choosing HD Carbon stores TECH_HD/CARBON", ForeverThemesDB.theme .. "/" .. Themes.Color(), "TECH_HD/CARBON")
+check("followers get the raw HD ids", Lib.Hub().Theme() .. "/" .. Lib.Hub().Color(), "TECH_HD/CARBON")
+colorRow.set(Lib.MenuValue("TECH", Themes.Colors("TECH")[2]))
+check("a plain colour goes back to the base", ForeverThemesDB.theme .. "/" .. Themes.Color(), "TECH/" .. Themes.Colors("TECH")[2])
 MenuUtil = nil
 Themes.Switch("PITWALL")
 
