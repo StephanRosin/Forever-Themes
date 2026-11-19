@@ -225,7 +225,10 @@ bar.Text = bar:CreateFontString()
 bar._scriptHooks = {}
 local errorsFrame = CreateFrame("MessageFrame", "UIErrorsFrame")
 _G.UIErrorsFrame = errorsFrame
-function errorsFrame:GetFont() return "Fonts\\FRIZQT__.TTF", 14, "OUTLINE" end
+function errorsFrame:GetFont()
+    local f = self._font or { "Fonts\\FRIZQT__.TTF", 14, "OUTLINE" }
+    return f[1], f[2], f[3]
+end
 function errorsFrame:SetFont(p, s, f) self._font = { p, s, f } end
 function errorsFrame:GetObjectType() return "MessageFrame" end
 local combatText = { _font = { "Fonts\\FRIZQT__.TTF", 25, "" } }
@@ -270,6 +273,32 @@ check("on: Baganator's category header too", (bagHeaderText:GetFont()), body)
 check("on: Baganator's stack count and item level too", (bagSlot.Count:GetFont()) .. " " .. (bagLevel:GetFont()),
     body .. " " .. body)
 check("damage numbers kept for the next login", ForeverThemesDB.damageFont, "Titillium Web SemiBold")
+-- A font file used for the first time can be refused (Rubik, Goblin's text
+-- font): the text keeps its font for now and gets the new one moments later.
+local rubik, refusals = ns.Media.FontPath("Rubik Medium"), 2
+local setCast = bar.Text.SetFont
+function bar.Text:IsVisible() return true end
+function bar.Text:SetFont(path, ...)
+    if path == rubik and refusals > 0 then refusals = refusals - 1; return false end
+    return setCast(self, path, ...)
+end
+M.timers = {}
+Themes.Switch("GOBLIN")
+check("refused: the cast bar keeps its font for now", (bar.Text:GetFont()) ~= rubik, true)
+check("refused: the others take it", (swing.StatusBar.TypeLabel:GetFont()), rubik)
+for _ = 1, 5 do runTimers() end
+check("tried again: taken", (bar.Text:GetFont()), rubik)
+check("taken: no more tries", #M.timers, 0)
+-- A hidden text (breath bar) is no reason to try again: it never loads a new file.
+Themes.Switch("PITWALL")
+for _ = 1, 5 do runTimers() end
+refusals = 1
+function bar.Text:IsVisible() return false end
+Themes.Switch("GOBLIN")
+check("hidden and refused: no retry", #M.timers, 0)
+bar.Text.IsVisible = nil
+bar.Text.SetFont = setCast
+Themes.Switch("PITWALL")
 Themes.Switch("WOOD")
 check("Wood: Friz body gives the title font", (bar.Text:GetFont()), ns.Media.FontPath("Cinzel"))
 Themes.Switch("CLASSIC")
@@ -687,6 +716,10 @@ for _, id in ipairs(Lib.IDS) do
         end
         if art.ornament and not exists(Lib.Texture(art.ornament .. ".tga")) then absent[#absent + 1] = art.ornament end
         if art.wedge and not exists(Lib.Texture(art.wedge .. ".tga")) then absent[#absent + 1] = art.wedge end
+        -- Azeroth's and Goblin's frame and banner (names without ".tga", as drawn).
+        for _, key in ipairs({ "frame", "banner", "bannerEnd" }) do
+            if art[key] and not exists(Lib.Texture(art[key]) .. ".tga") then absent[#absent + 1] = art[key] end
+        end
     end
 end
 for r = 1, ns.Corners.MAX_RADIUS do

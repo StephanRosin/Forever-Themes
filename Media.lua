@@ -37,6 +37,7 @@ local function hasFont(fs, path)
     local function plain(p) return (p:lower():gsub("/", "\\")) end
     return plain(got) == plain(path)
 end
+Media.HasFont = hasFont
 -- How often and how far apart a refused font is tried again.
 local FONT_RETRIES, FONT_RETRY_DELAY = 40, 0.25
 

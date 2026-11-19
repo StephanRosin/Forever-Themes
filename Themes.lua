@@ -89,6 +89,25 @@ Themes.SPECS = Lib.Specs({
         art = { shine = { 0, 0, 0 }, line = { 0, 0, 0, 1 }, band = { color = T.PITWALL.strip },
             contentShade = { 0, 0, 0, 0.85 } },
     },
+    -- A window of the game's own world: parchment in a walnut frame, the title
+    -- in gold on a red banner. Blizzard sets most texts light, so the light
+    -- parchment is shaded as dark as Parchment's paper (light text with an
+    -- outline; dark ink only where an addon sets every colour itself).
+    AZEROTH = {
+        look = { borderStyle = "FLAT", borderSize = 2, borderColor = T.AZEROTH.rim, headerColor = { 1, 0.82, 0 },
+            valueColor = { 0.96, 0.89, 0.72 } },
+        art = { ornamentSize = 18, ornamentInset = 0, shine = { 1, 0.82, 0 }, line = { 0.29, 0.2, 0.12, 0.8 },
+            band = {}, contentShade = { 0.16, 0.09, 0.03, 0.55 } },
+    },
+    -- A goblin workshop: sooty sheet metal in a copper frame with rivets; the
+    -- warning stripes only as a thin strip (text on them would not read).
+    GOBLIN = {
+        displaySizeAdd = -1,
+        look = { borderStyle = "FLAT", borderSize = 2, borderColor = T.GOBLIN.rim, headerColor = { 0.95, 0.76, 0.19 },
+            valueColor = { 0.96, 0.92, 0.85 } },
+        art = { ornamentSize = 11, ornamentInset = 0, shine = { 0.95, 0.76, 0.19 }, line = { 0.55, 0.33, 0.16, 0.8 },
+            band = { height = 5 } },
+    },
 }, true)
 -- Classic draws nothing; its look only keeps the skins' lookups safe.
 Themes.SPECS.CLASSIC.look = {}

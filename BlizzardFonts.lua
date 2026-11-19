@@ -95,14 +95,21 @@ function BlizzardFonts.Targets()
     return list
 end
 
+-- Whether the client refused path on any shown text (a file used for the
+-- first time, e.g. Bungee or Alegreya, can be); those keep their font until
+-- then. A hidden text never loads a new file (Media.lua): it gets the font at
+-- the next refresh, not a retry of its own.
 local function setFont(list, path)
+    local refused = false
     for _, fs in ipairs(list) do
         local file, size, flags = fs:GetFont()
         if file ~= path and size then
             originals[fs] = originals[fs] or { object = fs:GetFontObject(), file = file, size = size, flags = flags }
             fs:SetFont(path, size, flags)
+            if fs.IsVisible and fs:IsVisible() and not ns.Media.HasFont(fs, path) then refused = true end
         end
     end
+    return refused
 end
 
 local function restoreAll()
@@ -127,11 +134,33 @@ local function wanted()
     return BlizzardFonts.Enabled() and ns.Themes.Font() or nil
 end
 
+-- A refused font is set again a little later, as the skins do (Media.lua):
+-- else the texts kept the client's font until the next loading screen.
+local RETRY_DELAY, RETRIES = 0.25, 40
+local retry = { pending = false, left = RETRIES }
+
+local function retryLater()
+    if retry.pending or retry.left <= 0 then return end
+    retry.pending, retry.left = true, retry.left - 1
+    C_Timer.After(RETRY_DELAY, function()
+        retry.pending = false
+        BlizzardFonts.Refresh()
+    end)
+end
+
+local function applyTo(list, font)
+    local path = ns.Media.FontPath(font)
+    if not setFont(list, path) then retry.left = RETRIES; return end
+    if retry.left > 0 then retryLater(); return end
+    -- Given up: said once, as the skins say it (Media.lua).
+    if not retry.told then retry.told = true; ns.Print(ns.L.FONT_REFUSED, path) end
+end
+
 -- After a settings change, a theme switch, a loading screen.
 function BlizzardFonts.Refresh()
     local font = wanted()
     ns.AccountDB().damageFont = font
-    if font then setFont(BlizzardFonts.Targets(), ns.Media.FontPath(font)) else restoreAll() end
+    if font then applyTo(BlizzardFonts.Targets(), font) else restoreAll() end
 end
 
 local function hookCastBar()
@@ -142,7 +171,7 @@ local function hookCastBar()
         if font then
             local list = {}
             castBarTexts(list)
-            setFont(list, ns.Media.FontPath(font))
+            applyTo(list, font)
         end
     end)
 end
@@ -161,7 +190,7 @@ local function hookBaganator()
         if font then
             local list = {}
             bagTexts(list, details)
-            setFont(list, ns.Media.FontPath(font))
+            applyTo(list, font)
         end
     end)
 end

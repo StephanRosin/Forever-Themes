@@ -177,6 +177,37 @@ local newRow = { Background = tex(), Title = blizzard():CreateFontString() }
 rowCallback(nil, newRow)
 check("new stats row: Julius", (newRow.Title:GetFont()), Media.FontPath("Julius Sans One"))
 
+print("\nFramed themes (Azeroth, Goblin):")
+local function file(t) return t._texture and t._texture:match("[^\\]+$") end
+Themes.Switch("AZEROTH")
+local framed = 0
+for _, s in ipairs(art.strips) do
+    if s:IsShown() and file(s) == "WoodHDWalnut" then framed = framed + 1 end
+end
+check("azeroth: walnut frame on four sides", framed, 4)
+local topLeft = M.anchorXY[art.strips[1]].TOPLEFT
+check("azeroth: frame outside the window, 7 wide", topLeft[1] == -topLeft[2] and topLeft[2] >= 7, true)
+check("azeroth: banner as the title band", art.band:IsShown() and file(art.band), "AzerothBanner")
+check("azeroth: banner ends, the right one mirrored", art.ends[1]:IsShown() and art.ends[2]._texCoord[1], 1)
+check("azeroth: band starts past the left end", M.anchorXY[art.band].TOPLEFT[1], art.ends[1]:GetWidth())
+check("azeroth: title in gold on the banner, not ink", list(title._textColor), "1,0.82,0,1")
+check("azeroth: title Cinzel", (title:GetFont()), Media.FontPath("Cinzel"))
+check("azeroth: parchment shaded under Blizzard's light texts", art.shade:IsShown(), true)
+check("azeroth: gold corners on the frame", art.ornaments[1]:IsShown() and file(art.ornaments[1]), "Bracket.tga")
+Themes.Switch("GOBLIN")
+check("goblin: copper frame", art.strips[1]:IsShown() and file(art.strips[1]), "GoblinCopper")
+check("goblin: hazard strip 5 high, repeating", file(art.band) .. " " .. art.band:GetHeight() .. " "
+    .. tostring(art.band:GetHorizTile()), "GoblinHazard 5 true")
+check("goblin: no banner ends", art.ends[1]:IsShown(), false)
+check("goblin: title Bungee, a point smaller (runs wide)", table.concat({ title:GetFont() }, " ", 1, 2),
+    Media.FontPath("Bungee") .. " 9")
+check("goblin: level line in Rubik at Blizzard's size", table.concat({ CharacterLevelText:GetFont() }, " ", 1, 2),
+    Media.FontPath("Rubik Medium") .. " 10")
+Themes.Switch("PITWALL")
+check("pitwall after them: no frame, no ends", art.strips[1]:IsShown() or art.ends[1]:IsShown(), false)
+check("pitwall after them: the band a colour again", art.band:GetHorizTile() == false and art.band._texture == nil, true)
+Themes.Switch("FROST")
+
 print("\nClassic restores everything:")
 Themes.Switch("CLASSIC")
 check("NineSlice back", alpha(frame.NineSlice), 1)
@@ -191,6 +222,7 @@ check("tab no longer desaturated", tab.SelectedTexture:IsDesaturated(), false)
 check("tab untinted", list(tab.SelectedTexture._vertex), "1,1,1,1")
 check("close: Blizzard's art back", alpha(closeTextures[1]), 1)
 check("ring gone", ns.Border.Pieces(art.over)[1]:IsShown(), false)
+check("frame gone", art.strips[1]:IsShown(), false)
 
 print("\nSwitch off under a theme:")
 Themes.Switch("TECH")

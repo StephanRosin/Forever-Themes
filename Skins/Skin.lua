@@ -14,9 +14,10 @@ change; Skin.Restore puts everything back (Classic, option off).
 
 The own art (Skin.NewArt) draws on the window what the panel draws: theme
 tile with the same tint (Media.ThemeBackground, LibForeverThemes' tint), dark
-fill (stained glass, frost), title strip with gloss and line, band and
-Pitwall wedge, ornaments and the ring inside along the edge (nothing reaches
-beyond the window except the soft shadow).
+fill (stained glass, frost), title strip with gloss and line, band (or the
+banner of Azeroth and Goblin) and Pitwall wedge, ornaments and the ring
+inside along the edge (nothing reaches beyond the window except the soft
+shadow and the framed themes' frame, which lies around the edge).
 -----------------------------------------------------------------------------]]
 
 local ADDON, ns = ...
@@ -80,7 +81,11 @@ function Skin.Font(rec, fs, fontName, flag, color)
         local r, g, b, a = fs:GetTextColor()
         color = { r or 1, g or 1, b or 1, a or 1 }
     end
-    ns.Media.ApplyText(fs, { font = fontName, size = o.size, flag = flag or blizzardFlag(o), color = color })
+    -- displaySizeAdd: a wide title font (Goblin's Bungee) a point smaller, so
+    -- Blizzard's headings keep to their room.
+    local spec = ns.Themes.Spec(ns.Themes.Current())
+    local size = o.size + (fontName == spec.font and spec.displaySizeAdd or 0)
+    ns.Media.ApplyText(fs, { font = fontName, size = size, flag = flag or blizzardFlag(o), color = color })
 end
 
 function Skin.Restore(rec)
@@ -174,6 +179,11 @@ function Skin.NewArt(frame, titleHeight)
     art.band = texture(frame, -5)
     art.line = texture(frame, -4)
     art.wedge = texture(frame, -3)
+    -- A banner's ends (Azeroth) and the frame strips outside the window's
+    -- edge (Blizzard's tabs hanging out there lie over them).
+    art.ends = { texture(frame, -5), texture(frame, -5) }
+    art.strips = {}
+    for i = 1, 4 do art.strips[i] = texture(frame, -8) end
     art.over = CreateFrame("Frame", nil, frame)
     art.over:SetAllPoints(frame)
     art.over:SetFrameLevel(frame:GetFrameLevel() + OVER_LEVEL)
@@ -187,6 +197,7 @@ function Skin.NewArt(frame, titleHeight)
 end
 
 local function placeOrnaments(art, look, extent)
+    -- extent: how far out from the box the ornaments' corner lies (ring and frame).
     local wanted = {}
     for _, i in ipairs(look.ornament and look.corners or {}) do wanted[i] = true end
     local size, inset = look.ornamentSize or ORNAMENT_SIZE, (look.ornamentInset or 0) - extent
@@ -202,6 +213,66 @@ local function placeOrnaments(art, look, extent)
             piece:SetVertexColor(c[1], c[2], c[3], c[4])
         end
         piece:SetShown(wanted[i] == true)
+    end
+end
+
+-- A banner end's width per height (the file is half as wide as high).
+local BANNER_END = 0.5
+
+-- The banner's ends (left as drawn, right mirrored) at the band's ends;
+-- returns how far in the band's middle starts on each side.
+local function placeEnds(art, a, h)
+    local shown = a.band ~= nil and a.banner ~= nil and a.bannerEnd ~= nil
+    for _, e in ipairs(art.ends) do e:SetShown(shown) end
+    if not shown then return 0 end
+    local w = math.floor(h * BANNER_END + 0.5)
+    for i, e in ipairs(art.ends) do
+        local point = i == 1 and "TOPLEFT" or "TOPRIGHT"
+        e:ClearAllPoints()
+        e:SetPoint(point, art.box, point, 0, 0)
+        e:SetSize(w, h)
+        e:SetTexture(Lib.Texture(a.bannerEnd))
+        if i == 1 then e:SetTexCoord(0, 1, 0, 1) else e:SetTexCoord(1, 0, 0, 1) end
+        e:SetVertexColor(1, 1, 1, 1)
+    end
+    return w
+end
+
+-- The band's fill: the banner (stretched, or repeated at its own size) or its colour.
+local function paintBand(tex, a, band)
+    local tile = a.banner ~= nil and a.bannerTile == true
+    tex:SetHorizTile(tile)
+    tex:SetVertTile(tile)
+    if a.banner then
+        tex:SetTexture(Lib.Texture(a.banner), tile and "REPEAT" or nil, tile and "REPEAT" or nil)
+        tex:SetTexCoord(0, 1, 0, 1)
+        tex:SetVertexColor(1, 1, 1, 1)
+    else
+        tex:SetColorTexture(band.color[1], band.color[2], band.color[3], band.color[4])
+    end
+end
+
+-- The frame's four strips around the window's outside, w wide (Azeroth's
+-- walnut, Goblin's copper; the top and bottom ones across the corners).
+local function placeFrame(art, a, w)
+    for _, s in ipairs(art.strips) do s:SetShown(w > 0) end
+    if w <= 0 then return end
+    local frame = art.frame
+    local spots = {
+        { "TOPLEFT", -w, w, "TOPRIGHT", w, 0 },
+        { "BOTTOMLEFT", -w, 0, "BOTTOMRIGHT", w, -w },
+        { "TOPLEFT", -w, 0, "BOTTOMLEFT", 0, 0 },
+        { "TOPRIGHT", 0, 0, "BOTTOMRIGHT", w, 0 },
+    }
+    for i, s in ipairs(art.strips) do
+        local p = spots[i]
+        s:ClearAllPoints()
+        s:SetPoint("TOPLEFT", frame, p[1], p[2], p[3])
+        s:SetPoint("BOTTOMRIGHT", frame, p[4], p[5], p[6])
+        s:SetTexture(Lib.Texture(a.frame), "REPEAT", "REPEAT")
+        s:SetHorizTile(true)
+        s:SetVertTile(true)
+        s:SetVertexColor(1, 1, 1, 1)
     end
 end
 
@@ -224,12 +295,13 @@ local function placeStrip(art, a, extent)
     art.line:Show()
     local band = a.band
     art.band:SetShown(band ~= nil)
+    local inset = placeEnds(art, a, h - extent)
     if band then
         art.band:ClearAllPoints()
-        art.band:SetPoint("TOPLEFT", art.box, "TOPLEFT")
-        art.band:SetPoint("TOPRIGHT", art.box, "TOPRIGHT")
+        art.band:SetPoint("TOPLEFT", art.box, "TOPLEFT", inset, 0)
+        art.band:SetPoint("TOPRIGHT", art.box, "TOPRIGHT", -inset, 0)
         art.band:SetHeight(band.height or (h - extent))
-        art.band:SetColorTexture(band.color[1], band.color[2], band.color[3], band.color[4])
+        paintBand(art.band, a, band)
     end
     art.wedge:SetShown(a.wedge ~= nil)
     if a.wedge then
@@ -277,7 +349,9 @@ function Skin.PaintArt(art)
     ns.Border.Draw(art.over, art.box, border)
     placeShade(art, a.contentShade, extent)
     placeStrip(art, a, extent)
-    placeOrnaments(art, a, extent)
+    local frameWidth = a.frame and ns.Border.Snap(a.frameSize, 1) or 0
+    placeFrame(art, a, frameWidth)
+    placeOrnaments(art, a, extent + frameWidth)
 end
 
 local NO_BORDER = { style = "NONE", size = 0, radius = 0, shadow = false }
@@ -285,6 +359,8 @@ local NO_BORDER = { style = "NONE", size = 0, radius = 0, shadow = false }
 function Skin.HideArt(art)
     for _, key in ipairs({ "back", "shade", "shine", "band", "line", "wedge" }) do art[key]:Hide() end
     for _, piece in ipairs(art.ornaments) do piece:Hide() end
+    for _, piece in ipairs(art.ends) do piece:Hide() end
+    for _, piece in ipairs(art.strips) do piece:Hide() end
     ns.Corners.Fit(art.clip, art.frame, 0, { art.back, art.shine })
     ns.Border.Draw(art.over, art.box, NO_BORDER)
 end

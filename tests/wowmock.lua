@@ -57,6 +57,11 @@ local function newWidget(name)
     -- so the tests can check them.
     function w:SetTexture(t) self._texture = t end
     function w:GetTexture() return self._texture end
+    function w:SetTexCoord(...) self._texCoord = { ... } end
+    function w:SetHorizTile(v) self._horizTile = v == true end
+    function w:GetHorizTile() return self._horizTile == true end
+    function w:SetVertTile(v) self._vertTile = v == true end
+    function w:GetVertTile() return self._vertTile == true end
     function w:SetColorTexture(r, g, b, a) self._colorTexture = { r, g, b, a } ; self._texture = nil end
     function w:SetVertexColor(r, g, b, a) self._vertex = { r, g, b, a } end
     function w:SetDesaturation(v) self._desat = v end
