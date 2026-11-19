@@ -193,7 +193,7 @@ check("azeroth: band starts past the left end", M.anchorXY[art.band].TOPLEFT[1],
 check("azeroth: title in gold on the banner, not ink", list(title._textColor), "1,0.82,0,1")
 check("azeroth: title Cinzel", (title:GetFont()), Media.FontPath("Cinzel"))
 check("azeroth: parchment shaded under Blizzard's light texts", art.shade:IsShown(), true)
-check("azeroth: gold corners on the frame", art.ornaments[1]:IsShown() and file(art.ornaments[1]), "Bracket.tga")
+check("azeroth: no corner pieces", art.ornaments[1]:IsShown(), false)
 Themes.Switch("GOBLIN")
 check("goblin: copper frame", art.strips[1]:IsShown() and file(art.strips[1]), "GoblinCopper")
 check("goblin: hazard strip 5 high, repeating", file(art.band) .. " " .. art.band:GetHeight() .. " "
