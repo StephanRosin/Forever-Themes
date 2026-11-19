@@ -38,6 +38,12 @@ end
 
 function ns.ThemeChoice() return Lib.BaseTheme(Themes.Current()) end
 
+-- The theme menu's choice: the one shown already (an HD theme shows as its
+-- base) changes nothing, else that theme.
+function ns.ChooseTheme(id)
+    if id ~= ns.ThemeChoice() then Themes.Switch(id) end
+end
+
 -- The colour menu (here and Menu.lua): the base's colours, then its HD
 -- theme's as "HD Carbon"; values Lib.MenuValue ("TECH_HD:CARBON").
 function ns.ColorChoices()
@@ -62,7 +68,7 @@ local function themePage(spec)
     spec[#spec + 1] = { type = "tab", label = "TAB_THEME" }
     spec[#spec + 1] = { type = "header", label = "HEADER_THEME" }
     spec[#spec + 1] = { type = "select", label = "OPT_THEME", hint = "HINT_THEME", choices = themeChoices,
-        get = ns.ThemeChoice, set = function(v) Themes.Switch(v) end }
+        get = ns.ThemeChoice, set = ns.ChooseTheme }
     spec[#spec + 1] = { type = "select", label = "OPT_COLOR", choices = ns.ColorChoices,
         visible = function() return #Themes.Colors() > 0 end,
         get = ns.ColorChoice, set = ns.ChooseColor }

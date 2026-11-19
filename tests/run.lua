@@ -663,6 +663,8 @@ Lib.Hub().OpenMenu(element)
 root.sets["HD " .. ns.ColorName("TECH_HD", "CARBON")]()
 check("choosing HD Carbon stores TECH_HD/CARBON", ForeverThemesDB.theme .. "/" .. Themes.Color(), "TECH_HD/CARBON")
 check("followers get the raw HD ids", Lib.Hub().Theme() .. "/" .. Lib.Hub().Color(), "TECH_HD/CARBON")
+ns.ChooseTheme("TECH")
+check("the shown base chosen again keeps HD", ForeverThemesDB.theme, "TECH_HD")
 colorRow.set(Lib.MenuValue("TECH", Themes.Colors("TECH")[2]))
 check("a plain colour goes back to the base", ForeverThemesDB.theme .. "/" .. Themes.Color(), "TECH/" .. Themes.Colors("TECH")[2])
 MenuUtil = nil

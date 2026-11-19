@@ -18,7 +18,7 @@ function Menu.Fill(root)
     -- HD themes are colours of their base (Options.lua).
     for _, id in ipairs(LibForeverThemes.MenuIds(Themes.IDS)) do
         root:CreateRadio(ns.ThemeName(id), function() return ns.ThemeChoice() == id end,
-            function() Themes.Switch(id) end)
+            function() ns.ChooseTheme(id) end)
     end
     local colors = ns.ColorChoices()
     if #colors > 0 then
