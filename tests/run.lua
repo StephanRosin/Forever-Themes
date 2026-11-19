@@ -699,6 +699,12 @@ check("a plain colour goes back to the base", ForeverThemesDB.theme .. "/" .. Th
 MenuUtil = nil
 Themes.Switch("PITWALL")
 
+section("A theme the library dropped (Azeroth, LibForeverThemes 13), still saved")
+ForeverThemesDB.theme = "AZEROTH"
+check("drawn as Classic", Themes.Current(), "CLASSIC")
+check("followers told Classic", Lib.Hub().Theme(), "CLASSIC")
+check("another theme switches", Themes.Switch("PITWALL"), true)
+
 section("Media files exist")
 local function exists(path)
     local file = ADDONDIR .. "/" .. path:gsub("^Interface\\AddOns\\ForeverThemes\\", ""):gsub("\\", "/")
@@ -716,7 +722,7 @@ for _, id in ipairs(Lib.IDS) do
         end
         if art.ornament and not exists(Lib.Texture(art.ornament .. ".tga")) then absent[#absent + 1] = art.ornament end
         if art.wedge and not exists(Lib.Texture(art.wedge .. ".tga")) then absent[#absent + 1] = art.wedge end
-        -- Azeroth's and Goblin's frame and banner (names without ".tga", as drawn).
+        -- Goblin's frame and banner (names without ".tga", as drawn).
         for _, key in ipairs({ "frame", "banner", "bannerEnd" }) do
             if art[key] and not exists(Lib.Texture(art[key]) .. ".tga") then absent[#absent + 1] = art[key] end
         end

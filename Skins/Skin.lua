@@ -15,7 +15,7 @@ change; Skin.Restore puts everything back (Classic, option off).
 The own art (Skin.NewArt) draws on the window what the panel draws: theme
 tile with the same tint (Media.ThemeBackground, LibForeverThemes' tint), dark
 fill (stained glass, frost), title strip with gloss and line, band (or the
-banner of Azeroth and Goblin) and Pitwall wedge, ornaments and the ring
+banner of Goblin) and Pitwall wedge, ornaments and the ring
 inside along the edge (nothing reaches beyond the window except the soft
 shadow and the framed themes' frame, which lies around the edge).
 -----------------------------------------------------------------------------]]
@@ -179,7 +179,7 @@ function Skin.NewArt(frame, titleHeight)
     art.band = texture(frame, -5)
     art.line = texture(frame, -4)
     art.wedge = texture(frame, -3)
-    -- A banner's ends (Azeroth) and the frame strips outside the window's
+    -- A banner's ends and the frame strips outside the window's
     -- edge (Blizzard's tabs hanging out there lie over them).
     art.ends = { texture(frame, -5), texture(frame, -5) }
     art.strips = {}
@@ -252,8 +252,8 @@ local function paintBand(tex, a, band)
     end
 end
 
--- The frame's four strips around the window's outside, w wide (Azeroth's
--- walnut, Goblin's copper; the top and bottom ones across the corners).
+-- The frame's four strips around the window's outside, w wide (Goblin's
+-- copper; the top and bottom ones across the corners).
 local function placeFrame(art, a, w)
     for _, s in ipairs(art.strips) do s:SetShown(w > 0) end
     if w <= 0 then return end

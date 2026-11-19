@@ -5,7 +5,7 @@
 local THEME_BACKS = { WOOD = { "Wood", 0.5 }, TECH = { "Tech", 1 }, PARCHMENT = { "Parchment", 0.45 },
     RUNESTONE = { "Stone", 0.55 }, GLASS = { "Glass", 1 }, COMIC = { "Comic", 0.7 }, FROST = { "Frost", 0.55 },
     PIXEL = { "Pixel", 1 }, SWISS = { "Swiss", 1 }, CONSOLE = { "Console", 1 }, PITWALL = { "Swiss", 1 },
-    AZEROTH = { "AzerothParchment", 1 }, GOBLIN = { "GoblinSoot", 1 } }
+    GOBLIN = { "GoblinSoot", 1 } }
 local BG_ALPHA = { FROST = 0.85 }
 return function(ns)
     local Lib, Themes = LibForeverThemes, ns.Themes
@@ -13,7 +13,7 @@ return function(ns)
     panel.bg = panel:CreateTexture()
     function panel.Paint()
         local id = Themes.Current()
-        -- An HD theme (<BASE>_HD) and a framed one (Azeroth, Goblin): every colour its own
+        -- An HD theme (<BASE>_HD) and a framed one (Goblin): every colour its own
         -- finished file, white at the base's alpha.
         local base = id:match("^(.+)_HD$")
         local b = THEME_BACKS[base or id]
