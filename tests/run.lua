@@ -257,10 +257,6 @@ local bagFrames, bagListeners = { { regionType = "ItemButton", region = bagSlot 
     { regionType = "CornerWidget", region = bagLevel }, { regionType = "CategorySectionHeader", region = bagHeader } }, {}
 Baganator = { API = { Skins = { GetAllFrames = function() return bagFrames end,
     RegisterListener = function(f) bagListeners[#bagListeners + 1] = f end } } }
--- A Bartender button (LibActionButton's regions).
-local bt = CreateFrame("CheckButton", "BT4Button7")
-_G.BT4Button7 = bt
-bt.HotKey, bt.Count = bt:CreateFontString(), bt:CreateFontString()
 local Fonts = ns.BlizzardFonts
 check("off by default", Fonts.Enabled(), false)
 Themes.Switch("PITWALL")
@@ -275,8 +271,6 @@ check("on: swing timer labels too", (swing.StatusBar.TypeLabel:GetFont()) .. " "
 check("on: breath bar too", (mirror.mirrorTimers[1].Text:GetFont()), body)
 check("on: Baganator's category header too", (bagHeaderText:GetFont()), body)
 check("on: Baganator's stack count and item level too", (bagSlot.Count:GetFont()) .. " " .. (bagLevel:GetFont()),
-    body .. " " .. body)
-check("on: Bartender's key binding and count too", (bt.HotKey:GetFont()) .. " " .. (bt.Count:GetFont()),
     body .. " " .. body)
 check("damage numbers kept for the next login", ForeverThemesDB.damageFont, "Titillium Web SemiBold")
 -- A font file used for the first time can be refused (Rubik, Goblin's text

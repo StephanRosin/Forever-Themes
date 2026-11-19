@@ -15,8 +15,7 @@ local ADDON, ns = ...
 -- fatigue and feign-death bars (MirrorTimerContainer.mirrorTimers[i].Text) and,
 -- with Baganator, the texts on its bag slots (stack count, corner widgets
 -- such as item level) and its category headers, reached through its skin API
--- (Baganator.API.Skins), and the action buttons' key binding, count and macro
--- name (Blizzard's bars and Bartender4's).
+-- (Baganator.API.Skins).
 -- The first change remembers each text's font for the session; Classic or
 -- the switch off puts it back.
 --
@@ -36,12 +35,6 @@ local COOLDOWN_VIEWERS = { "EssentialCooldownViewer", "UtilityCooldownViewer", "
     "BuffBarCooldownViewer" }
 local AURA_FRAMES = { "BuffFrame", "DebuffFrame" }
 local SWING_TIMERS = { "SwingTimerMainHandFrame", "SwingTimerOffHandFrame", "SwingTimerRangedFrame" }
--- Action buttons (key binding, count, macro name): Blizzard's bars and
--- Bartender4's (BT4Button1..180, LibActionButton keeps these regions).
-local ACTION_BARS = { ActionButton = 12, MultiBarBottomLeftButton = 12, MultiBarBottomRightButton = 12,
-    MultiBarRightButton = 12, MultiBarLeftButton = 12, MultiBar5Button = 12, MultiBar6Button = 12,
-    MultiBar7Button = 12, PetActionButton = 10, StanceButton = 10, BT4Button = 180, BT4PetButton = 10,
-    BT4StanceButton = 10 }
 
 -- FontString (or MessageFrame) -> its font before the first change.
 local originals = setmetatable({}, { __mode = "k" })
@@ -92,12 +85,6 @@ function BlizzardFonts.Targets()
     for _, name in ipairs(SWING_TIMERS) do
         local bar = _G[name] and _G[name].StatusBar
         if bar then add(list, bar.TypeLabel); add(list, bar.TimeLabel) end
-    end
-    for prefix, count in pairs(ACTION_BARS) do
-        for i = 1, count do
-            local button = _G[prefix .. i]
-            if button then add(list, button.HotKey); add(list, button.Count); add(list, button.Name) end
-        end
     end
     local mirror = _G.MirrorTimerContainer
     for _, timer in ipairs(mirror and mirror.mirrorTimers or {}) do add(list, timer.Text) end
