@@ -298,6 +298,20 @@ Themes.Switch("GOBLIN")
 check("hidden and refused: no retry", #M.timers, 0)
 bar.Text.IsVisible = nil
 bar.Text.SetFont = setCast
+-- Blizzard's aura buttons answer IsVisible and GetFont with secret values
+-- (CurseForge 21.11.2026): never tested, the font is still set.
+local SECRET = setmetatable({}, { __eq = function() error("compared a secret") end })
+_G.issecretvalue = function(v) return v == nil and false or rawequal(v, SECRET) end
+local getCast = bar.Text.GetFont
+function bar.Text:IsVisible() return SECRET end
+local ok, err = pcall(Themes.Switch, "PITWALL")
+check("secret visibility: no error", ok and true or tostring(err), true)
+check("secret visibility: font set", (bar.Text:GetFont()), body)
+function bar.Text:GetFont() return SECRET, SECRET, SECRET end
+ok, err = pcall(Themes.Switch, "GOBLIN")
+check("secret font: no error", ok and true or tostring(err), true)
+check("secret font: no retries", #M.timers, 0)
+bar.Text.GetFont, bar.Text.IsVisible, _G.issecretvalue = getCast, nil, nil
 Themes.Switch("PITWALL")
 Themes.Switch("WOOD")
 check("Wood: Friz body gives the title font", (bar.Text:GetFont()), ns.Media.FontPath("Cinzel"))

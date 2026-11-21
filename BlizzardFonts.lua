@@ -99,14 +99,21 @@ end
 -- first time, e.g. Bungee or Alegreya, can be); those keep their font until
 -- then. A hidden text never loads a new file (Media.lua): it gets the font at
 -- the next refresh, not a retry of its own.
+-- Blizzard's aura buttons can answer IsVisible (and GetFont) with secret
+-- values (CurseForge 21.11.2026): never tested, only passed on; a secret
+-- one counts as hidden (no retry) and as another font (set anew).
+local function secret(v) return issecretvalue ~= nil and issecretvalue(v) == true end
+
 local function setFont(list, path)
     local refused = false
     for _, fs in ipairs(list) do
         local file, size, flags = fs:GetFont()
-        if file ~= path and size then
+        local open = not (secret(file) or secret(size))
+        if not open or (file ~= path and size) then
             originals[fs] = originals[fs] or { object = fs:GetFontObject(), file = file, size = size, flags = flags }
             fs:SetFont(path, size, flags)
-            if fs.IsVisible and fs:IsVisible() and not ns.Media.HasFont(fs, path) then refused = true end
+            local shown = fs.IsVisible and fs:IsVisible()
+            if not secret(shown) and shown and not ns.Media.HasFont(fs, path) then refused = true end
         end
     end
     return refused

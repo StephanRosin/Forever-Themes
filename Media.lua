@@ -33,6 +33,8 @@ end
 -- themes' ones) can be refused on first use.
 local function hasFont(fs, path)
     local got = fs:GetFont()
+    -- A secret answer cannot be compared: taken (no endless retries).
+    if issecretvalue and issecretvalue(got) then return true end
     if type(got) ~= "string" then return false end
     local function plain(p) return (p:lower():gsub("/", "\\")) end
     return plain(got) == plain(path)
