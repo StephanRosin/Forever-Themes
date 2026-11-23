@@ -618,7 +618,7 @@ check("four pages", tabs, 4)
 check("a row per registered addon", addonRows, 6)
 check("/forever", SLASH_FOREVERTHEMES1, "/forever")
 check("slash handler", type(SlashCmdList.FOREVERTHEMES), "function")
-check("minimap button made", M.byName.ForeverThemesMinimapButton ~= nil, true)
+check("minimap button made", M.byName["Forever Themes"] ~= nil, true)
 for _, row in ipairs(spec) do
     if type(row.label) == "function" and row.label() == "Forever Quest Log" then
         check("Quest Log row: own", row.get(), "OWN")
